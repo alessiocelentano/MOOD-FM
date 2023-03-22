@@ -121,8 +121,8 @@ async def back(client, query):
     )
 
 
-@app.on_message(filters.command('cur', prefixes=['/', '.', '!']))
-async def current(client, message):
+@app.on_message(filters.command('now', prefixes=['/', '.', '!', '']))
+async def now(client, message):
     ''''''
     user_id = message.from_user.id
     user_name = message.from_user.first_name
