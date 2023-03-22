@@ -27,8 +27,8 @@ PADLOCK = '\U0001F512'
 BACK = '\U0001F519'
 
 
-START_MESSAGE = f'''{HEADPHONES} <b><u>What is GramFM?</u></b>
-GramFM is a detailed LastFM interface on Telegram with several additional features. \
+START_MESSAGE = f'''{HEADPHONES} <b><u>What is MOOD-FM?</u></b>
+MOOD-FM is a detailed LastFM interface on Telegram with several additional features. \
 Share your music in chats in a quick way.\n
 {TOOL} <b>Usage</b>
 WiP\n
@@ -36,7 +36,7 @@ WiP\n
 '''
 
 LOGIN_MESSAGE = f'''{GLOBE} <b><u>Connect with us</u></b>
-Authorize GramFM to access your scrobbles.
+Authorize MOOD-FM to access your scrobbles.
 Once logged in, click on "Done" button
 '''
 
@@ -51,7 +51,7 @@ AUTH_BUTTON = f'{PADLOCK_KEY} AUTHORIZE'
 UNAUTH_BUTTON = f'{PADLOCK} UNAUTHORIZE'
 DONE_BUTTON = f'{TIC} DONE'
 AUTH_ERROR = 'Error during authorization. Try again'
-AUTH_SUCCESS = f'{TIC} GramFM authorizated successfully!'
-UNAUTH_SUCCESS = f'{TIC} GramFM unauthorizated successfully!'
+AUTH_SUCCESS = f'{TIC} MOOD-FM authorizated successfully!'
+UNAUTH_SUCCESS = f'{TIC} MOOD-FM unauthorizated successfully!'
 BACK_BUTTON = f'{BACK} BACK'
 
