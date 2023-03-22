@@ -125,6 +125,7 @@ async def back(client, query):
 async def current(client, message):
     ''''''
     user_id = message.from_user.id
+    user_name = message.from_user.first_name
 
     if str(user_id) not in user_settings:
         create_user_settings(user_id)
@@ -133,10 +134,15 @@ async def current(client, message):
     username = user_settings[str(user_id)]['username']
     user = network.get_user(username)
     playing_track = user.get_now_playing()
+    plays = playing_track.get_userplaycount()
+    track_cover_url = playing_track.get_cover_image()
+    caption = f'<i>{user_name} is listening to:</i>\n{playing_track}\n{plays} plays'
 
-    return await client.send_message(
+    #TODO: increase image resolution with Spotify API
+    return await client.send_photo(
         chat_id=user_id,
-        text=playing_track
+        photo=track_cover_url,
+        caption=caption
     )
 
 
