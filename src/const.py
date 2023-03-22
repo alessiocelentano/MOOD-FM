@@ -35,8 +35,9 @@ SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
 START_MESSAGE = f'''{HEADPHONES} <b><u>What is MOOD-FM?</u></b>
 MOOD-FM is a detailed LastFM interface on Telegram with several additional features. \
 Share your music in chats in a quick way.\n
-{TOOL} <b>Usage</b>
-WiP\n
+{TOOL} <b><u>Usage</u></b>
+Use the command /now in any chat with MOOD-FM.
+Check out /help for a full list of commands\n
 @alessiocelentano | <a href="{CHANNEL_LINK}">Follow us</a> | <a href="{SOURCE_LINK}">GitHub</a>
 '''
 
