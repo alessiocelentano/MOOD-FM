@@ -5,13 +5,17 @@ import const
 
 def get_start_markup(user):
     if user['session_key']:
-        text = const.LOGGED_BUTTON
+        text = const.LOGOUT_BUTTON
         callback_data = 'logout'
     else:
-        text = const.NOT_LOGGED_BUTTON
+        text = const.LOGIN_BUTTON
         callback_data = 'login'
 
     return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(text=const.CHANNEL_BUTTON, url=const.CHANNEL_LINK),
+            InlineKeyboardButton(text=const.SOURCE_BUTTON, url=const.SOURCE_LINK)
+        ],
         [InlineKeyboardButton(text=text, callback_data=callback_data)]
     ])
 
