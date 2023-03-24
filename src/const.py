@@ -2,10 +2,11 @@ import os
 import configparser
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
-CONFIG_FILE_NAME = f'{PROJECT_ROOT}/src/config.ini'
+CONFIG_FILE_PATH = f'{PROJECT_ROOT}/src/config.ini'
 USER_SETTINGS_PATH = f'{PROJECT_ROOT}/src/user_settings.json'
+HISTORY_PATH = f'{PROJECT_ROOT}/histories/'
 config = configparser.ConfigParser()
-config.read(CONFIG_FILE_NAME)
+config.read(CONFIG_FILE_PATH)
 
 TG_API_ID = config['telegram']['api_id']
 TG_API_HASH = config['telegram']['api_hash']
@@ -28,6 +29,11 @@ PADLOCK = '\U0001F512'
 BACK = '\U0001F519'
 MEGAPHONE = '\U0001F4E3'
 PEOPLE = '\U0001F465'
+WRENCH = '\U0001F6E0'
+OUTBOX = '\U0001F4E4'
+QUESTION_MARK = '\u2753'
+RADIO_BUTTON = '\U0001F518'
+HOURGLASS = '\u23F3'
 
 CHANNEL_LINK = 't.me/MOODFM_CHANNEL'
 SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
@@ -51,6 +57,29 @@ You\'re currently logged in with your Last FM account.
 Press the button below to unauthorize it
 '''
 
+SETTINGS_MESSAGE = '''{} <b><u>Settings</u></b>\n
+<b>Spotify history loaded:</b> {}
+'''
+
+LOAD_HISTORY_MESSAGE = f'''{OUTBOX} <b><u>Load history</u></b>
+Last.FM starts to keep track of your scrobbles when you join it.
+On MOOD-FM you can load your Spotify history to update your data.
+Send your <code>my_spotify_data.zip</code> here
+
+{QUESTION_MARK} <b>How can I get my history?</b>
+You can request your history at <a href="https://www.spotify.com/us/account/privacy/">this link</a> \
+checking the "Extended streaming history" box
+'''
+
+INVALID_HISTORY_MESSAGE = f'''{CROSS} Invalid type of file. Try again
+Send your <code>my_spotify_data.zip</code>
+'''
+
+STATUS_HISTORY_LOAD_MESSAGE = '''{1} Download of <code>{0}</code>
+{2} Unzip of <code>{0}</code>
+{3} Save history
+'''
+
 AUTH_SUCCESS = f'{TIC} MOOD-FM authorizated successfully!'
 UNAUTH_SUCCESS = f'{TIC} MOOD-FM unauthorizated successfully!'
 LOGOUT_BUTTON =f'{CROSS} LOGOUT'
@@ -58,7 +87,9 @@ LOGIN_BUTTON = f'{GREY_TIC} LOGIN'
 AUTH_BUTTON = f'{PADLOCK_KEY} AUTHORIZE'
 UNAUTH_BUTTON = f'{PADLOCK} UNAUTHORIZE'
 DONE_BUTTON = f'{TIC} DONE'
-AUTH_ERROR = 'Error during authorization. Try again'
+AUTH_ERROR = f'{CROSS} Error during authorization. Try again'
 BACK_BUTTON = f'{BACK} BACK'
 CHANNEL_BUTTON = f'{MEGAPHONE} CHANNEL'
 SOURCE_BUTTON = f'{GLOBE} SOURCE'
+SETTINGS_BUTTON = f'{WRENCH} SETTINGS'
+LOAD_HISTORY_BUTTON = f'{OUTBOX} LOAD HISTORY'
