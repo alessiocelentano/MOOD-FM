@@ -136,6 +136,9 @@ async def load_history(client, query):
     if str(user_id) not in user_settings:
         create_user_settings(user_id)
 
+    if not user_settings[str(user_id)]['session_key']:
+        return await client.answer_callback_query(query.id, const.NOT_LOGGED_MESSAGE, show_alert=True)
+
     user_settings[str(user_id)]['loading_file'] = True
 
     await client.answer_callback_query(query.id)  # Delete the loading circle

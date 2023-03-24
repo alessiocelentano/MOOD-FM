@@ -71,6 +71,9 @@ You can request your history at <a href="https://www.spotify.com/us/account/priv
 checking the "Extended streaming history" box
 '''
 
+NOT_LOGGED_MESSAGE = f'''{CROSS} Cannot use this feature. Authentication required
+'''
+
 INVALID_HISTORY_MESSAGE = f'''{CROSS} Invalid type of file. Try again
 Send your <code>my_spotify_data.zip</code>
 '''
