@@ -35,7 +35,15 @@ def get_logout_markup():
         [InlineKeyboardButton(text=const.BACK_BUTTON, callback_data='back')]
     ])
 
-def get_settings_markup(auth_url):
+
+def get_settings_markup():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton(text=const.LOAD_HISTORY_BUTTON, callback_data='load_history')]
+        [InlineKeyboardButton(text=const.LOAD_HISTORY_BUTTON, callback_data='load_history')],
+        [InlineKeyboardButton(text=const.BACK_BUTTON, callback_data='back')]
+    ])
+
+
+def get_load_history_markup():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(text=const.BACK_BUTTON, callback_data='back')]
     ])

@@ -62,7 +62,7 @@ SETTINGS_MESSAGE = '''{} <b><u>Settings</u></b>\n
 '''
 
 LOAD_HISTORY_MESSAGE = f'''{OUTBOX} <b><u>Load history</u></b>
-Last.FM starts to keep track of your scrobbles when you join it.
+LastFM starts to keep track of your scrobbles when you join it.
 On MOOD-FM you can load your Spotify history to update your data.
 Send your <code>my_spotify_data.zip</code> here
 

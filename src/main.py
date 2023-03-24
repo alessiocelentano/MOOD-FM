@@ -126,7 +126,7 @@ async def settings(client, query):
     await client.answer_callback_query(query.id)  # Delete the loading circle
     return await query.message.edit_text(
         text=text,
-        reply_markup=markup.get_settings_markup(user_settings[str(user_id)])
+        reply_markup=markup.get_settings_markup()
     )
 
 
@@ -144,7 +144,7 @@ async def load_history(client, query):
     await client.answer_callback_query(query.id)  # Delete the loading circle
     return await query.message.edit_text(
         text=const.LOAD_HISTORY_MESSAGE,
-        reply_markup=None
+        reply_markup=markup.get_load_history_markup()
     )
 
 
