@@ -6,6 +6,7 @@ import time
 from pyrogram import Client, filters
 import pylast
 
+from user import User
 import markup
 import const
 
@@ -18,70 +19,67 @@ app = Client(const.SESSION_NAME,
 )
 network = pylast.LastFMNetwork(const.FM_API_KEY, const.FM_API_SECRET)
 with open(const.USER_SETTINGS_PATH) as f:
-    user_settings = json.load(f)
+    users_list = json.load(f)
 
 
 @app.on_message(filters.command('start'), group=-1)
 async def start(client, message):
-    user_id = message.from_user.id
-    if str(user_id) not in user_settings:
-        create_user_settings(user_id)
-    user_settings[str(user_id)]['loading_file'] = False
+    user = await get_user_instance(message.from_user.id)
+    user.is_loading_files = False
+    update_user(user)
+    dump_users()
 
-    return await client.send_message(
-        chat_id=user_id,
+    await client.send_message(
+        chat_id=user.id,
         text=const.START_MESSAGE, 
-        reply_markup=markup.get_start_markup(user_settings[str(user_id)])
+        reply_markup=markup.get_start_markup(user.session_key)
     )
 
 
 @app.on_callback_query(filters.create(lambda _, __, query: query.data == 'login'))
 async def last_fm_login(client, query):
-    user_id = query.from_user.id
-    session_key_generator = pylast.SessionKeyGenerator(network)
-    auth_url = session_key_generator.get_web_auth_url()
-    user_settings[str(user_id)]['session_key_generator'] = session_key_generator
-    user_settings[str(user_id)]['auth_url'] = auth_url
+    user = await get_user_instance(query.from_user.id)
 
-    if str(user_id) not in user_settings:
-        create_user_settings(user_id)
+    user.session_key_generator = pylast.SessionKeyGenerator(network)
+    user.auth_url = user.session_key_generator.get_web_auth_url()
+    update_user(user)
 
     await client.answer_callback_query(query.id)  # Delete the loading circle
-    return await query.message.edit_text(
+    await query.message.edit_text(
         text=const.LOGIN_MESSAGE,
-        reply_markup=markup.get_login_markup(auth_url)
+        reply_markup=markup.get_login_markup(user.auth_url)
     )
 
 
 @app.on_callback_query(filters.create(lambda _, __, query: query.data == 'auth_done'))
 async def check_autorization(client, query):
-    user_id = query.from_user.id
-    session_key_generator = user_settings[str(user_id)]['session_key_generator']
-    auth_url = user_settings[str(user_id)]['auth_url']
+    user = await get_user_instance(query.from_user.id)
 
     try:
-        session_key, username = session_key_generator.get_web_auth_session_key_username(auth_url)
+        user.session_key, user.name = user.session_key_generator.get_web_auth_session_key_username(user.auth_url)
+        user.session_key_generator, user.auth_url = None, None
+        update_user(user)
+        dump_users()
         await client.answer_callback_query(query.id, const.AUTH_SUCCESS, show_alert=True)
-        del user_settings[str(user_id)]['session_key_generator']
-        del user_settings[str(user_id)]['auth_url']
-        update_session_key_username(user_id, session_key, username)
-        return await query.message.edit_text(
+        
+        await query.message.edit_text(
             const.START_MESSAGE, 
-            reply_markup=markup.get_start_markup(user_settings[str(user_id)])
+            reply_markup=markup.get_start_markup(user.session_key)
         )
+
     except pylast.WSError:
         await client.answer_callback_query(query.id, const.AUTH_ERROR, show_alert=True)
 
 
 @app.on_callback_query(filters.create(lambda _, __, query: query.data == 'logout'))
 async def last_fm_logout(client, query):
-    user_id = query.from_user.id
-
-    if str(user_id) not in user_settings:
-        create_user_settings(user_id)
+    # user is not needed but we call the function
+    # for the rare case that it's the user first action
+    # in this way a new instance is created and stored
+    await get_user_instance(query.from_user.id)
 
     await client.answer_callback_query(query.id)  # Delete the loading circle
-    return await query.message.edit_text(
+    await query.message.edit_text(
         text=const.LOGOUT_MESSAGE,
         reply_markup=markup.get_logout_markup()
     )
@@ -89,45 +87,43 @@ async def last_fm_logout(client, query):
 
 @app.on_callback_query(filters.create(lambda _, __, query: query.data == 'unauth_done'))
 async def remove_authorization(client, query):
-    user_id = query.from_user.id
+    user = await get_user_instance(query.from_user.id)
+    user.session_key, user.name = None, None
+    update_user(user)
+    dump_users()
 
-    if str(user_id) not in user_settings:
-        create_user_settings(user_id)
-
-    update_session_key_username(user_id, session_key=None, username=None)
     await client.answer_callback_query(query.id, const.UNAUTH_SUCCESS, show_alert=True)
-    return await query.message.edit_text(
+    await query.message.edit_text(
         const.START_MESSAGE, 
-        reply_markup=markup.get_start_markup(user_settings[str(user_id)])
+        reply_markup=markup.get_start_markup(user.session_key)
     )
 
 
 @app.on_callback_query(filters.create(lambda _, __, query: query.data == 'back'))
 async def back(client, query):
-    user_id = query.from_user.id
-    if str(user_id) not in user_settings:
-        create_user_settings(user_id)
-    user_settings[str(user_id)]['loading_file'] = False
+    user = await get_user_instance(query.from_user.id)
+    user.is_loading_files = False
+    update_user(user)
+    dump_users()
 
     await client.answer_callback_query(query.id)  # Delete the loading circle
-    return await query.message.edit_text(
+    await query.message.edit_text(
         text=const.START_MESSAGE,
-        reply_markup=markup.get_start_markup(user_settings[str(user_id)])
+        reply_markup=markup.get_start_markup(user.session_key)
     )
 
 
 @app.on_callback_query(filters.create(lambda _, __, query: query.data == 'settings'))
 async def settings(client, query):
-    user_id = query.from_user.id
-    if str(user_id) not in user_settings:
-        create_user_settings(user_id)
+    user = await get_user_instance(query.from_user.id)
 
     text = const.SETTINGS_MESSAGE.format(
-        const.WRENCH, const.TIC if user_settings[str(user_id)]['loaded_history'] else const.CROSS
+        const.WRENCH,
+        const.TIC if user.is_history_loaded else const.CROSS
     )
 
     await client.answer_callback_query(query.id)  # Delete the loading circle
-    return await query.message.edit_text(
+    await query.message.edit_text(
         text=text,
         reply_markup=markup.get_settings_markup()
     )
@@ -135,154 +131,159 @@ async def settings(client, query):
 
 @app.on_callback_query(filters.create(lambda _, __, query: query.data == 'load_history'))
 async def load_history(client, query):
-    user_id = query.from_user.id
-    if str(user_id) not in user_settings:
-        create_user_settings(user_id)
+    user = await get_user_instance(query.from_user.id)
 
-    if not user_settings[str(user_id)]['session_key']:
-        return await client.answer_callback_query(query.id, const.NOT_LOGGED_MESSAGE, show_alert=True)
+    if not user.session_key:
+        await client.answer_callback_query(
+            query.id,
+            const.NOT_LOGGED_MESSAGE,
+            show_alert=True
+        )
+        return
 
-    user_settings[str(user_id)]['loading_file'] = True
+    user.is_loading_files = True
+    update_user(user)
+    dump_users()
 
     await client.answer_callback_query(query.id)  # Delete the loading circle
-    return await query.message.edit_text(
+    await query.message.edit_text(
         text=const.LOAD_HISTORY_MESSAGE,
         reply_markup=markup.get_load_history_markup()
     )
 
 
-@app.on_message(filters.create(lambda _, __, message: str(message.from_user.id) in user_settings and user_settings[str(message.from_user.id)]['loading_file']))
+@app.on_message(group=1)
 async def store_history(client, message):
-    user_id = message.from_user.id
-    if str(user_id) not in user_settings:
-        create_user_settings(user_id)
+    user = await get_user_instance(message.from_user.id)
+    lastfm_user = network.get_user(user.name)
+    registration_unixtime = lastfm_user.get_unixtime_registered()
+
+    if not user.is_loading_files:
+        return
 
     if not message.document or message.document.file_name[-4:] != '.zip':
-        return await client.send_message(
-            chat_id=user_id,
+        await client.send_message(
+            chat_id=user.id,
             text=const.INVALID_HISTORY_MESSAGE,
         )
+        return
 
-    # TODO: add status for endsong_x.json
-    status = await set_history_loading_status(client, user_id, message.document.file_name)
+    user.is_loading_files = False
+
+    status = await update_history_loading_status(
+        client=client,
+        user_id=user.id,
+        file_name=message.document.file_name, 
+        step=0
+    )
+
     history_zip = await client.download_media(message, in_memory=True)
-    await update_history_loading_status(status, message.document.file_name, step=1)
+    await update_history_loading_status(
+        message=status,
+        file_name=message.document.file_name, 
+        step=1
+    )
+
     with zipfile.ZipFile(history_zip) as zip:
-        await update_history_loading_status(status, message.document.file_name, step=2)
         endsongs = list(filter(lambda x: ('MyData/endsong' in x), zip.namelist()))
         for item in endsongs:
             with zip.open(item) as f:
-                history_chunk = json.loads(f.read().decode('utf-8'))
-                await merge_scrobbles(user_id, history_chunk)
-    await update_history_loading_status(status, message.document.file_name, step=3)
+                scrobbles = json.loads(f.read().decode('utf-8'))
+            user.store_scrobbles(scrobbles, registration_unixtime)
+            # TODO: add status for endsong_x.json
+            '''
+            await update_history_loading_status(
+                message=status,
+                file_name=message.document.file_name, 
+                step=3
+            )
+            '''
+
+    update_user(user)
+    dump_users()
+    await update_history_loading_status(
+        message=status,
+        file_name=message.document.file_name,
+        step=2
+    )
 
 
 @app.on_message(filters.command('now', prefixes=['/', '.', '!', '']), group=-1)
 async def now(client, message):
     #TODO: check login
-    user_id = message.from_user.id
-    user_first_name = message.from_user.first_name
+    user = await get_user_instance(message.from_user.id)
+    lastfm_user = network.get_user(user.name)
+    user.is_loading_files = False
+    update_user(user)
+    dump_users()
 
-    if str(user_id) not in user_settings:
-        create_user_settings(user_id)
-    user_settings[str(user_id)]['loading_file'] = False
-
-    username = user_settings[str(user_id)]['username']
-    user = network.get_user(username)
-    playing_track = user.get_now_playing()
-    plays = await get_playcount(playing_track, user_id)
+    playing_track = lastfm_user.get_now_playing()
+    plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
     track_cover_url = playing_track.get_cover_image()
     
-    caption = f'<i>{user_first_name} is listening to:</i>\n{playing_track}\n{plays} plays'
+    caption = f'<i>{message.from_user.first_name} is listening to:</i>\n{playing_track}\n{plays} plays'
 
     #TODO: increase image resolution with Spotify API
-    return await client.send_photo(
-        chat_id=user_id,
+    await client.send_photo(
+        chat_id=user.id,
         photo=track_cover_url,
         caption=caption
     )
 
 
-async def get_playcount(playing_track, user_id):
+def get_playcount(scrobbles_before_lastfm, playing_track):
     lastfm_playcount = playing_track.get_userplaycount()
     artist = playing_track.artist.name
     track_name = playing_track.title
-    for item in user_settings[str(user_id)]['scrobbles_before_lastfm']:
+
+    for item in scrobbles_before_lastfm:
         if item['artist'] == artist and item['track_name'] == track_name:
             return lastfm_playcount + item['scrobbles']
+
     return lastfm_playcount
 
 
-async def set_history_loading_status(client, user_id, file_name):
-    emojis = [const.RADIO_BUTTON] + [const.HOURGLASS] * 2
-    return await client.send_message(
-        chat_id=user_id,
+async def update_history_loading_status(file_name, step, client=None, user_id=None, message=None):
+    emojis = [const.TIC if i < step else (const.HOURGLASS if i == step else const.RADIO_BUTTON) for i in range(3)]
+    if step == 0:
+        return await client.send_message(
+            chat_id=user_id,
+            text=const.STATUS_HISTORY_LOAD_MESSAGE.format(file_name, *emojis)
+        )
+    await message.edit_text(
         text=const.STATUS_HISTORY_LOAD_MESSAGE.format(file_name, *emojis)
     )
 
 
-async def update_history_loading_status(message, file_name, step):
-    emojis = [const.TIC if i < step else (const.RADIO_BUTTON if i == step else const.HOURGLASS) for i in range(3)]
-    await message.edit_text(text=const.STATUS_HISTORY_LOAD_MESSAGE.format(file_name, *emojis))
+async def get_user_instance(user_id):
+    if str(user_id) in users_list:
+        user_data = users_list[str(user_id)]
+        user = User(**user_data)
+    else:
+        user = User(user_id)
+        update_user(user)  # Create it, in this case
+        dump_users()
+    return user
 
 
-async def merge_scrobbles(user_id, history_chunk):
-    username = user_settings[str(user_id)]['username']
-    user = network.get_user(username)
-    registration_unixtime = user.get_unixtime_registered()
-    for scrobble in history_chunk:
-        if scrobble['ms_played'] > 30000:
-            scrobble_timestamp = time.strptime(scrobble['ts'], const.DATETIME_FORMAT)
-            scrobble_unixtime = int(time.mktime(scrobble_timestamp))
-            artist = scrobble['master_metadata_album_artist_name']
-            track_name = scrobble['master_metadata_track_name']
-            album = scrobble['master_metadata_album_album_name']
-            if scrobble_unixtime < registration_unixtime:
-                index = get_track_index(user_settings[str(user_id)]['scrobbles_before_lastfm'], artist, track_name)
-                if index:
-                    user_settings[str(user_id)]['scrobbles_before_lastfm'][index]['scrobbles'] += 1
-                    if scrobble_unixtime < user_settings[str(user_id)]['scrobbles_before_lastfm'][index]['unixtime_firstlisten']:
-                        user_settings[str(user_id)]['scrobbles_before_lastfm'][index]['unixtime_firstlisten'] = scrobble_unixtime
-                else:
-                    user_settings[str(user_id)]['scrobbles_before_lastfm'].append({
-                            'artist': artist, 
-                            'track_name': track_name,
-                            'album': album,
-                            'scrobbles': 1,
-                            'unixtime_firstlisten': scrobble_unixtime
-                    })
-    dump_user_settings()
-
-
-def get_track_index(scrobbles, artist, track_name):
-    for i, item in enumerate(scrobbles):
-        if item['artist'] == artist and item['track_name'] == track_name:
-            return i
-    return None
-                
-
-def create_user_settings(user_id):
-    # user_id is stored as string because json.dump() would generate
+def update_user(user):
+    # id is stored as string because json.dump() would generate
     # duplicate if we use int, since it would eventually converted in a string
-    user_settings[str(user_id)] = {
-        'session_key': None,
-        'username': None,
-        'loaded_history': False,
-        'loading_file': False, 
-        'scrobbles_before_lastfm': []
+    users_list[str(user.id)] = {
+        'id': user.id,
+        'name': user.name,
+        'session_key': user.session_key,
+        'session_key_generator': user.session_key_generator,
+        'auth_url': user.auth_url,
+        'is_history_loaded': user.is_history_loaded,
+        'is_loading_files': user.is_loading_files, 
+        'scrobbles_before_lastfm': user.scrobbles_before_lastfm
     }
-    dump_user_settings()
 
 
-def update_session_key_username(user_id, session_key, username):
-    user_settings[str(user_id)]['session_key'] = session_key
-    user_settings[str(user_id)]['username'] = username
-    dump_user_settings()
-
-
-def dump_user_settings():
-    with open(const.USER_SETTINGS_PATH, 'w') as f:
-        json.dump(user_settings, f, indent=4)
+def dump_users():
+    with open(const.USER_SETTINGS_PATH, 'w+') as f:
+        json.dump(users_list, f, indent=4)
 
 
 if __name__ == '__main__':

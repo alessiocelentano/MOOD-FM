@@ -17,6 +17,7 @@ FM_API_SECRET = config['last_fm']['api_secret']
 SESSION_NAME = config['misc']['session_name']
 
 CACHE_TIME = 3
+SCROBBLE_MINIMUM_MS = 30000
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 HEADPHONES = '\U0001F3A7'
@@ -79,9 +80,9 @@ INVALID_HISTORY_MESSAGE = f'''{CROSS} Invalid type of file. Try again
 Send your <code>my_spotify_data.zip</code>
 '''
 
-STATUS_HISTORY_LOAD_MESSAGE = '''{1} Download of <code>{0}</code>
-{2} Unzip of <code>{0}</code>
-{3} Save history
+STATUS_HISTORY_LOAD_MESSAGE = OUTBOX + ''' <b>Loading history. It may take a few seconds</b>\n
+{1} Download of <code>{0}</code>
+{2} Save history
 '''
 
 AUTH_SUCCESS = f'{TIC} MOOD-FM authorizated successfully!'

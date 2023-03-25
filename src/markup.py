@@ -3,8 +3,8 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import const
 
 
-def get_start_markup(user):
-    if user['session_key']:
+def get_start_markup(session_key):
+    if session_key:
         text = const.LOGOUT_BUTTON
         auth_callback_data = 'logout'
     else:
