@@ -3,7 +3,7 @@ import configparser
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 CONFIG_FILE_PATH = f'{PROJECT_ROOT}/src/config.ini'
-USER_SETTINGS_PATH = f'{PROJECT_ROOT}/src/user_settings.json'
+USERS_PATH = f'{PROJECT_ROOT}/src/users.json'
 HISTORY_PATH = f'{PROJECT_ROOT}/histories/'
 config = configparser.ConfigParser()
 config.read(CONFIG_FILE_PATH)

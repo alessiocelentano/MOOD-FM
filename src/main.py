@@ -18,7 +18,7 @@ app = Client(const.SESSION_NAME,
     bot_token=const.BOT_TOKEN
 )
 network = pylast.LastFMNetwork(const.FM_API_KEY, const.FM_API_SECRET)
-with open(const.USER_SETTINGS_PATH) as f:
+with open(const.USERS_PATH) as f:
     users_list = json.load(f)
 
 
@@ -303,7 +303,7 @@ def update_user(user):
 
 
 def dump_users():
-    with open(const.USER_SETTINGS_PATH, 'w+') as f:
+    with open(const.USERS_PATH, 'w+') as f:
         json.dump(users_list, f, indent=4)
 
 
