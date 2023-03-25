@@ -17,6 +17,7 @@ FM_API_SECRET = config['last_fm']['api_secret']
 SESSION_NAME = config['misc']['session_name']
 
 CACHE_TIME = 3
+DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 HEADPHONES = '\U0001F3A7'
 TOOL = '\U0001F6E0'
