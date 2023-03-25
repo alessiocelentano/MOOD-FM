@@ -136,20 +136,18 @@ async def load_history(client, query):
     user = await get_user_instance(query.from_user.id)
 
     if not user.session_key:
-        await client.answer_callback_query(
+        return await client.answer_callback_query(
             query.id,
             const.NOT_LOGGED_MESSAGE,
             show_alert=True
         )
-        return
 
     if user.is_history_loaded:
-        await client.answer_callback_query(
+        return await client.answer_callback_query(
             query.id,
             const.ALREADY_LOADED,
             show_alert=True
         )
-        return
 
     user.is_loading_files = True
     update_user(user)
@@ -173,11 +171,10 @@ async def store_history(client, message):
         return
 
     if not message.document or message.document.file_name[-4:] != '.zip':
-        await client.send_message(
+        return await client.send_message(
             chat_id=user.id,
             text=const.INVALID_HISTORY_MESSAGE,
         )
-        return
 
     user.is_loading_files = False
     
@@ -219,7 +216,6 @@ async def store_history(client, message):
 
 @app.on_message(filters.command('now', prefixes=['/', '.', '!', '']), group=-1)
 async def now(client, message):
-    #TODO: check login
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
     if user.is_loading_files:
@@ -227,6 +223,12 @@ async def now(client, message):
         update_user(user)
         dump_users()
 
+    if not user.session_key:
+        return await client.send_message(
+            chat_id=user.id,
+            text=const.NOT_LOGGED_MESSAGE
+        )
+        
     playing_track = lastfm_user.get_now_playing()
     plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
     track_cover_url = playing_track.get_cover_image()
