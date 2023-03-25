@@ -25,9 +25,10 @@ with open(const.USER_SETTINGS_PATH) as f:
 @app.on_message(filters.command('start'), group=-1)
 async def start(client, message):
     user = await get_user_instance(message.from_user.id)
-    user.is_loading_files = False
-    update_user(user)
-    dump_users()
+    if user.is_loading_files:
+        user.is_loading_files = False
+        update_user(user)
+        dump_users()
 
     await client.send_message(
         chat_id=user.id,
@@ -102,9 +103,10 @@ async def remove_authorization(client, query):
 @app.on_callback_query(filters.create(lambda _, __, query: query.data == 'back'))
 async def back(client, query):
     user = await get_user_instance(query.from_user.id)
-    user.is_loading_files = False
-    update_user(user)
-    dump_users()
+    if user.is_loading_files:
+        user.is_loading_files = False
+        update_user(user)
+        dump_users()
 
     await client.answer_callback_query(query.id)  # Delete the loading circle
     await query.message.edit_text(
@@ -141,6 +143,14 @@ async def load_history(client, query):
         )
         return
 
+    if user.is_history_loaded:
+        await client.answer_callback_query(
+            query.id,
+            const.ALREADY_LOADED,
+            show_alert=True
+        )
+        return
+
     user.is_loading_files = True
     update_user(user)
     dump_users()
@@ -157,6 +167,7 @@ async def store_history(client, message):
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
     registration_unixtime = lastfm_user.get_unixtime_registered()
+    step = 1
 
     if not user.is_loading_files:
         return
@@ -169,43 +180,41 @@ async def store_history(client, message):
         return
 
     user.is_loading_files = False
-
+    
     status = await update_history_loading_status(
         client=client,
         user_id=user.id,
-        file_name=message.document.file_name, 
+        file_names=[message.document.file_name], 
         step=0
     )
-
     history_zip = await client.download_media(message, in_memory=True)
-    await update_history_loading_status(
-        message=status,
-        file_name=message.document.file_name, 
-        step=1
-    )
 
     with zipfile.ZipFile(history_zip) as zip:
         endsongs = list(filter(lambda x: ('MyData/endsong' in x), zip.namelist()))
         for item in endsongs:
+            await update_history_loading_status(
+                message=status,
+                file_names=[message.document.file_name] + endsongs,
+                step=step
+            )
             with zip.open(item) as f:
                 scrobbles = json.loads(f.read().decode('utf-8'))
             user.store_scrobbles(scrobbles, registration_unixtime)
-            # TODO: add status for endsong_x.json
-            '''
-            await update_history_loading_status(
-                message=status,
-                file_name=message.document.file_name, 
-                step=3
-            )
-            '''
+            step += 1
 
+    user.is_history_loaded = True
     update_user(user)
     dump_users()
     await update_history_loading_status(
         message=status,
-        file_name=message.document.file_name,
-        step=2
+        file_names=[message.document.file_name] + endsongs,
+        step=step
     )
+    return await client.send_message(
+        chat_id=user.id,
+        text=const.HISTORY_LOADED_MESSAGE
+    )
+
 
 
 @app.on_message(filters.command('now', prefixes=['/', '.', '!', '']), group=-1)
@@ -213,9 +222,10 @@ async def now(client, message):
     #TODO: check login
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
-    user.is_loading_files = False
-    update_user(user)
-    dump_users()
+    if user.is_loading_files:
+        user.is_loading_files = False
+        update_user(user)
+        dump_users()
 
     playing_track = lastfm_user.get_now_playing()
     plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
@@ -243,16 +253,25 @@ def get_playcount(scrobbles_before_lastfm, playing_track):
     return lastfm_playcount
 
 
-async def update_history_loading_status(file_name, step, client=None, user_id=None, message=None):
-    emojis = [const.TIC if i < step else (const.HOURGLASS if i == step else const.RADIO_BUTTON) for i in range(3)]
+async def update_history_loading_status(file_names, step, client=None, user_id=None, message=None):
+    emojis = [const.TIC if i < step else (const.HOURGLASS if i == step else const.RADIO_BUTTON) for i in range(2)]
     if step == 0:
         return await client.send_message(
             chat_id=user_id,
-            text=const.STATUS_HISTORY_LOAD_MESSAGE.format(file_name, *emojis)
+            text=const.STATUS_HISTORY_LOAD_MESSAGE.format(file_names[0], *emojis)
         )
+    endsongs = file_names[1:]
     await message.edit_text(
-        text=const.STATUS_HISTORY_LOAD_MESSAGE.format(file_name, *emojis)
+        text = const.STATUS_HISTORY_LOAD_MESSAGE.format(file_names[0], *emojis) + get_endsongs_list(endsongs, step)
     )
+
+
+def get_endsongs_list(endsongs, step):
+    emojis = [const.TIC if i < step else (const.HOURGLASS if i == step else const.RADIO_BUTTON) for i in range(1, len(endsongs) + 1)]
+    text = f'\n<i>{const.MAGNIFYING_GLASS} {len(endsongs) - 1} files found</i>\n'
+    for emoji, file_name in zip(emojis, endsongs):
+        text += f'{emoji} <code>{file_name}</code>\n'
+    return text
 
 
 async def get_user_instance(user_id):

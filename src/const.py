@@ -36,6 +36,8 @@ OUTBOX = '\U0001F4E4'
 QUESTION_MARK = '\u2753'
 RADIO_BUTTON = '\U0001F518'
 HOURGLASS = '\u23F3'
+MAGNIFYING_GLASS = '\U0001F50E'
+PARTY_POPPER = '\U0001F389'
 
 CHANNEL_LINK = 't.me/MOODFM_CHANNEL'
 SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
@@ -82,11 +84,13 @@ Send your <code>my_spotify_data.zip</code>
 
 STATUS_HISTORY_LOAD_MESSAGE = OUTBOX + ''' <b>Loading history. It may take a few seconds</b>\n
 {1} Download of <code>{0}</code>
-{2} Save history
 '''
+
+HISTORY_LOADED_MESSAGE = f'{PARTY_POPPER} History loaded successfully'
 
 AUTH_SUCCESS = f'{TIC} MOOD-FM authorizated successfully!'
 UNAUTH_SUCCESS = f'{TIC} MOOD-FM unauthorizated successfully!'
+ALREADY_LOADED = 'You already loaded your history'
 LOGOUT_BUTTON =f'{CROSS} LOGOUT'
 LOGIN_BUTTON = f'{GREY_TIC} LOGIN'
 AUTH_BUTTON = f'{PADLOCK_KEY} AUTHORIZE'
