@@ -14,6 +14,8 @@ BOT_TOKEN = config['telegram']['bot_token']
 BOT_USERNAME = config['telegram']['bot_username']
 FM_API_KEY = config['last_fm']['api_key']
 FM_API_SECRET = config['last_fm']['api_secret']
+SPOTIFY_CLIENT_ID = config['spotify']['client_id']
+SPOTIFY_CLIENT_SECRET = config['spotify']['client_secret']
 SESSION_NAME = config['misc']['session_name']
 
 CACHE_TIME = 3

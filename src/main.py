@@ -5,6 +5,8 @@ import time
 
 from pyrogram import Client, filters
 import pylast
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 
 from user import User
 import markup
@@ -17,7 +19,16 @@ app = Client(const.SESSION_NAME,
     api_hash=const.TG_API_HASH,
     bot_token=const.BOT_TOKEN
 )
-network = pylast.LastFMNetwork(const.FM_API_KEY, const.FM_API_SECRET)
+network = pylast.LastFMNetwork(
+    api_key=const.FM_API_KEY,
+    api_secret=const.FM_API_SECRET
+)
+spotify = spotipy.Spotify(
+    auth_manager=SpotifyClientCredentials(
+        client_id=const.SPOTIFY_CLIENT_ID,
+        client_secret=const.SPOTIFY_CLIENT_SECRET
+    )
+)
 with open(const.USERS_PATH) as f:
     users_list = json.load(f)
 
@@ -228,14 +239,17 @@ async def now(client, message):
             chat_id=user.id,
             text=const.NOT_LOGGED_MESSAGE
         )
-        
+    
+    # TODO: and if the track is not on Spotify?
     playing_track = lastfm_user.get_now_playing()
     plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
-    track_cover_url = playing_track.get_cover_image()
+    search_result = spotify.search(playing_track, limit=1, type='track')['tracks']['items'][0]
+    track_name = search_result['name']
+    track_artists = ', '.join([artist['name'] for artist in search_result['artists']])
+    track_cover_url = search_result['album']['images'][0]['url']
     
-    caption = f'<i>{message.from_user.first_name} is listening to:</i>\n{playing_track}\n{plays} plays'
+    caption = f'<i>{message.from_user.first_name} is listening to:</i>\n{track_name} by {track_artists}\n{plays} plays'
 
-    #TODO: increase image resolution with Spotify API
     await client.send_photo(
         chat_id=user.id,
         photo=track_cover_url,
