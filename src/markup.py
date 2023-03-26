@@ -47,3 +47,10 @@ def get_load_history_markup():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton(text=const.BACK_BUTTON, callback_data='back')]
     ])
+
+
+def get_mood_markup(user_id, fires, track_name, track_artists):
+    return InlineKeyboardMarkup([[
+        InlineKeyboardButton(text=f'{const.FIRE}{fires}',
+        callback_data=f'fire/@/{user_id}/@/{track_name}/@/{track_artists}')
+    ]])

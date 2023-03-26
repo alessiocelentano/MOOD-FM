@@ -20,6 +20,7 @@ SESSION_NAME = config['misc']['session_name']
 
 CACHE_TIME = 3
 SCROBBLE_MINIMUM_MS = 30000
+CALLBACK_DATA_MAX = 20
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 HEADPHONES = '\U0001F3A7'
@@ -40,6 +41,7 @@ RADIO_BUTTON = '\U0001F518'
 HOURGLASS = '\u23F3'
 MAGNIFYING_GLASS = '\U0001F50E'
 PARTY_POPPER = '\U0001F389'
+FIRE = '\U0001F525'
 
 CHANNEL_LINK = 't.me/MOODFM_CHANNEL'
 SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
@@ -48,7 +50,7 @@ START_MESSAGE = f'''{HEADPHONES} <b><u>What is MOOD-FM?</u></b>
 MOOD-FM is a detailed LastFM interface on Telegram with several additional features. \
 Share your music in chats in a quick way.\n
 {TOOL} <b><u>Usage</u></b>
-Use the command /now in any chat with MOOD-FM.
+Use the command /mood in any chat with MOOD-FM.
 Check out /help for a full list of commands\n
 @alessiocelentano | <a href="{CHANNEL_LINK}">Follow us</a> | <a href="{SOURCE_LINK}">GitHub</a>
 '''
@@ -90,6 +92,11 @@ STATUS_HISTORY_LOAD_MESSAGE = OUTBOX + ''' <b>Loading history. It may take a few
 
 HISTORY_LOADED_MESSAGE = f'{PARTY_POPPER} History loaded successfully'
 
+MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_link}">{user_firstname}</a> is listening to:</i>\n
+<b>{track_name} • {headphones_emoji} {plays}</b>
+╰┈➤ <i> by {artist_name}</i>
+'''
+
 AUTH_SUCCESS = f'{TIC} MOOD-FM authorizated successfully!'
 UNAUTH_SUCCESS = f'{TIC} MOOD-FM unauthorizated successfully!'
 ALREADY_LOADED = 'You already loaded your history'
@@ -104,3 +111,5 @@ CHANNEL_BUTTON = f'{MEGAPHONE} CHANNEL'
 SOURCE_BUTTON = f'{GLOBE} SOURCE'
 SETTINGS_BUTTON = f'{WRENCH} SETTINGS'
 LOAD_HISTORY_BUTTON = f'{OUTBOX} LOAD HISTORY'
+FIRE_ADDED = f'{FIRE} +1 Fire'
+FIRE_REMOVED = 'Fire removed'

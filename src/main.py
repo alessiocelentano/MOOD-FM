@@ -1,7 +1,7 @@
 import json
 import uvloop
 import zipfile
-import time
+import re
 
 from pyrogram import Client, filters
 import pylast
@@ -225,8 +225,8 @@ async def store_history(client, message):
 
 
 
-@app.on_message(filters.command('now', prefixes=['/', '.', '!', '']), group=-1)
-async def now(client, message):
+@app.on_message(filters.command(['mood', 'cur', 'now'], prefixes=['/', '.', '!']), group=-1)
+async def mood(client, message):
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
     if user.is_loading_files:
@@ -248,12 +248,56 @@ async def now(client, message):
     track_artists = ', '.join([artist['name'] for artist in search_result['artists']])
     track_cover_url = search_result['album']['images'][0]['url']
     
-    caption = f'<i>{message.from_user.first_name} is listening to:</i>\n{track_name} by {track_artists}\n{plays} plays'
+    caption = const.MOOD_MESSAGE.format(
+        user_firstname=message.from_user.first_name,
+        user_link=f't.me/{message.from_user.username}',
+        fires_received=user.fires,
+        track_name=track_name,
+        artist_name=track_artists,
+        plays=plays,
+        fire_emoji=const.FIRE,
+        headphones_emoji=const.HEADPHONES
+    )
 
+    # Here we pick only the first CALLBACK_DATA_MAX characters of track_name
+    # and track_artists to avoid callback_data from being too large
+    # (that would prevent the message sending) 
     await client.send_photo(
         chat_id=user.id,
         photo=track_cover_url,
-        caption=caption
+        caption=caption,
+        reply_markup=markup.get_mood_markup(
+            user.id,
+            user.get_track_fires(track_artists, track_name),
+            track_name[:const.CALLBACK_DATA_MAX],
+            track_artists[:const.CALLBACK_DATA_MAX]
+        )
+    )
+
+
+@app.on_callback_query(filters.create(lambda _, __, query: 'fire' in query.data))
+async def send_fire(client, query):
+    _, user_receiver_id, track_name, artists = re.split('/@/', query.data)
+    user_sender = await get_user_instance(query.from_user.id)
+    user_receiver = await get_user_instance(user_receiver_id)
+
+    is_added = user_sender.toggle_fire_sending(user_receiver.id, artists, track_name)
+    user_receiver.toggle_fire_addition(user_sender.id, artists, track_name)
+    update_user(user_sender)
+    update_user(user_receiver)
+    dump_users()
+
+    await query.message.edit_reply_markup(
+        reply_markup=markup.get_mood_markup(
+            user_receiver.id,
+            user_receiver.get_track_fires(artists, track_name),
+            track_name[:const.CALLBACK_DATA_MAX],
+            artists[:const.CALLBACK_DATA_MAX]
+        )
+    )
+    await client.answer_callback_query(
+        query.id, 
+        const.FIRE_ADDED if is_added else const.FIRE_REMOVED
     )
 
 
@@ -263,7 +307,7 @@ def get_playcount(scrobbles_before_lastfm, playing_track):
     track_name = playing_track.title
 
     for item in scrobbles_before_lastfm:
-        if item['artist'] == artist and item['track_name'] == track_name:
+        if item['artist'] and artist in item['artist'] and item['track_name'] == track_name:
             return lastfm_playcount + item['scrobbles']
 
     return lastfm_playcount
@@ -312,6 +356,8 @@ def update_user(user):
         'auth_url': user.auth_url,
         'is_history_loaded': user.is_history_loaded,
         'is_loading_files': user.is_loading_files, 
+        'fires_received': user.fires_received,
+        'fires_sended': user.fires_sended,
         'scrobbles_before_lastfm': user.scrobbles_before_lastfm
     }
 
