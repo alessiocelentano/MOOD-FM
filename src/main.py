@@ -33,7 +33,7 @@ with open(const.USERS_PATH) as f:
     users_list = json.load(f)
 
 
-@app.on_message(filters.command('start'), group=-1)
+@app.on_message(filters.command('start'))
 async def start(client, message):
     user = await get_user_instance(message.from_user.id)
     if user.is_loading_files:
@@ -172,7 +172,7 @@ async def load_history(client, query):
     )
 
 
-@app.on_message()
+@app.on_message(group=1)
 async def store_history(client, message):
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
@@ -191,10 +191,10 @@ async def store_history(client, message):
     user.is_loading_files = False
     
     status = await update_history_loading_status(
-        client=client,
-        user_id=user.id,
+        message=message,
         file_names=[message.document.file_name], 
-        step=0
+        step=0,
+        client=client
     )
     history_zip = await client.download_media(message, in_memory=True)
 
@@ -226,7 +226,7 @@ async def store_history(client, message):
 
 
 
-@app.on_message(filters.command(['mood', 'cur', 'now'], prefixes=['/', '.', '!']), group=-1)
+@app.on_message(filters.command(['mood', 'cur', 'now'], prefixes=['/', '.', '!']))
 async def mood(client, message):
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
@@ -323,7 +323,7 @@ def get_playcount(scrobbles_before_lastfm, playing_track):
     return lastfm_playcount
 
 
-async def update_history_loading_status(file_names, step, client=None, user_id=None, message=None):
+async def update_history_loading_status(message, file_names, step, client=None):
     emojis = [const.TIC if i < step else (const.HOURGLASS if i == step else const.RADIO_BUTTON) for i in range(2)]
     if step == 0:
         return await client.send_message(
