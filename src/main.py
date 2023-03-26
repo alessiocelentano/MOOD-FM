@@ -44,7 +44,8 @@ async def start(client, message):
     await client.send_message(
         chat_id=message.chat.id,
         text=const.START_MESSAGE, 
-        reply_markup=markup.get_start_markup(user.session_key)
+        reply_markup=markup.get_start_markup(user.session_key),
+        disable_web_page_preview=False
     )
 
 
@@ -171,7 +172,7 @@ async def load_history(client, query):
     )
 
 
-@app.on_message(group=1)
+@app.on_message()
 async def store_history(client, message):
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
