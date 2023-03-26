@@ -42,7 +42,7 @@ async def start(client, message):
         dump_users()
 
     await client.send_message(
-        chat_id=user.id,
+        chat_id=message.chat.id,
         text=const.START_MESSAGE, 
         reply_markup=markup.get_start_markup(user.session_key)
     )
@@ -183,7 +183,7 @@ async def store_history(client, message):
 
     if not message.document or message.document.file_name[-4:] != '.zip':
         return await client.send_message(
-            chat_id=user.id,
+            chat_id=message.chat.id,
             text=const.INVALID_HISTORY_MESSAGE,
         )
 
@@ -219,7 +219,7 @@ async def store_history(client, message):
         step=step
     )
     return await client.send_message(
-        chat_id=user.id,
+        chat_id=message.chat.id,
         text=const.HISTORY_LOADED_MESSAGE
     )
 
@@ -236,7 +236,7 @@ async def mood(client, message):
 
     if not user.session_key:
         return await client.send_message(
-            chat_id=user.id,
+            chat_id=message.chat.id,
             text=const.NOT_LOGGED_MESSAGE
         )
     
@@ -263,7 +263,7 @@ async def mood(client, message):
     # and track_artists to avoid callback_data from being too large
     # (that would prevent the message sending) 
     await client.send_photo(
-        chat_id=user.id,
+        chat_id=message.chat.id,
         photo=track_cover_url,
         caption=caption,
         reply_markup=markup.get_mood_markup(
@@ -317,7 +317,7 @@ async def update_history_loading_status(file_names, step, client=None, user_id=N
     emojis = [const.TIC if i < step else (const.HOURGLASS if i == step else const.RADIO_BUTTON) for i in range(2)]
     if step == 0:
         return await client.send_message(
-            chat_id=user_id,
+            chat_id=message.chat.id,
             text=const.STATUS_HISTORY_LOAD_MESSAGE.format(file_names[0], *emojis)
         )
     endsongs = file_names[1:]
