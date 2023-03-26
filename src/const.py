@@ -97,6 +97,8 @@ MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_lin
 ╰┈➤ <i> by {artist_name}</i>
 '''
 
+MOOD_ERROR = '{cross_emoji} <i>{user_firstname}</i>, you are not currently listening to any tracks'
+
 AUTH_SUCCESS = f'{TIC} MOOD-FM authorizated successfully!'
 UNAUTH_SUCCESS = f'{TIC} MOOD-FM unauthorizated successfully!'
 ALREADY_LOADED = 'You already loaded your history'

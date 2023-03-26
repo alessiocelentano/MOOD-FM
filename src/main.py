@@ -240,8 +240,17 @@ async def mood(client, message):
             text=const.NOT_LOGGED_MESSAGE
         )
     
-    # TODO: and if the track is not on Spotify?
     playing_track = lastfm_user.get_now_playing()
+    if not playing_track:
+        return await client.send_message(
+            chat_id=message.chat.id,
+            text=const.MOOD_ERROR.format(
+                cross_emoji=const.CROSS,
+                user_firstname=message.from_user.first_name
+            ),
+        )
+
+    # TODO: and if the track is not on Spotify?
     plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
     search_result = spotify.search(playing_track, limit=1, type='track')['tracks']['items'][0]
     track_name = search_result['name']
