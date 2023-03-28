@@ -36,10 +36,7 @@ with open(const.USERS_PATH) as f:
 @app.on_message(filters.command('start'))
 async def start(client, message):
     user = await get_user_instance(message.from_user.id)
-    if user.is_loading_files:
-        user.is_loading_files = False
-        update_user(user)
-        dump_users()
+    await restore_state(user)
 
     await client.send_message(
         chat_id=message.chat.id,
@@ -115,10 +112,7 @@ async def remove_authorization(client, query):
 @app.on_callback_query(filters.create(lambda _, __, query: query.data == 'back'))
 async def back(client, query):
     user = await get_user_instance(query.from_user.id)
-    if user.is_loading_files:
-        user.is_loading_files = False
-        update_user(user)
-        dump_users()
+    await restore_state(user)
 
     await client.answer_callback_query(query.id)  # Delete the loading circle
     await query.message.edit_text(
@@ -230,10 +224,7 @@ async def store_history(client, message):
 async def mood(client, message):
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
-    if user.is_loading_files:
-        user.is_loading_files = False
-        update_user(user)
-        dump_users()
+    await restore_state(user)
 
     if not user.session_key:
         return await client.send_message(
@@ -342,6 +333,15 @@ def get_endsongs_list(endsongs, step):
     for emoji, file_name in zip(emojis, endsongs):
         text += f'{emoji} <code>{file_name}</code>\n'
     return text
+
+
+async def restore_state(user):
+    if user.is_loading_files or user.session_key_generator:
+        user.is_loading_files = False
+        user.session_key_generator = None
+        user.auth_url = None
+        update_user(user)
+        dump_users()
 
 
 async def get_user_instance(user_id):
