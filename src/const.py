@@ -22,6 +22,12 @@ CACHE_TIME = 3
 SCROBBLE_MINIMUM_MS = 30000
 CALLBACK_DATA_MAX = 20
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+DEFAULT_COLLAGE_COLUMNS = 3
+DEFAULT_COLLAGE_ROWS = 3
+
+TRACKS = 'tr'
+ARTISTS = 'ar'
+ALBUMS = 'al'
 
 HEADPHONES = '\U0001F3A7'
 TOOL = '\U0001F6E0'
@@ -46,6 +52,7 @@ FIRE = '\U0001F525'
 CHANNEL_LINK = 't.me/MOODFM_CHANNEL'
 SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
 TUTORIAL_LINK = 'https://telegra.ph/MOOD-FM-TUTORIAL-03-26'
+NO_COVER = f'{PROJECT_ROOT}/assets/no_cover.jpg'
 
 START_MESSAGE = f'''<a href="{TUTORIAL_LINK}">{HEADPHONES}</a> <b><u>What is MOOD-FM?</u></b>
 MOOD-FM is a detailed LastFM interface on Telegram with several additional features. \
@@ -92,12 +99,20 @@ STATUS_HISTORY_LOAD_MESSAGE = OUTBOX + ''' <b>Loading history. It may take a few
 
 HISTORY_LOADED_MESSAGE = f'{PARTY_POPPER} History loaded successfully'
 
-MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_link}">{user_firstname}</a> is listening to:</i>\n
+MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_url}">{user_firstname}</a> is listening to:</i>\n
 <b>{track_name} • {headphones_emoji} {plays}</b>
 ╰┈➤ <i> by {artist_name}</i>
 '''
 
+LOADING_COLLAGE_MESSAGE = f'''{HOURGLASS} <i>Collage creation in progess...
+It may take a while</i>
+'''
+
 MOOD_ERROR = '{cross_emoji} <i>{user_firstname}</i>, you are not currently listening to any tracks'
+
+COLLAGE_ERROR = f'''<a href="{TUTORIAL_LINK}">{CROSS}</a> Error: invalid use of the command.
+Please check out the tutorial to see the parameters available for /collage
+'''
 
 AUTH_SUCCESS = f'{TIC} MOOD-FM authorizated successfully!'
 UNAUTH_SUCCESS = f'{TIC} MOOD-FM unauthorizated successfully!'

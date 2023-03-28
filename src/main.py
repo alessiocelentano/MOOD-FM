@@ -4,12 +4,14 @@ import zipfile
 import re
 
 from pyrogram import Client, filters
+from pyrogram.types import InputMediaPhoto
 import pylast
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
 from user import User
 import markup
+import collage
 import const
 
 
@@ -239,20 +241,15 @@ async def mood(client, message):
             text=const.MOOD_ERROR.format(
                 cross_emoji=const.CROSS,
                 user_firstname=message.from_user.first_name
-            ),
+            )
         )
 
     # TODO: and if the track is not on Spotify?
-    query = ' '.join([playing_track.artist.name, playing_track.title, playing_track.info['album']])
-    search_result = spotify.search(query, limit=1, type='track')['tracks']['items'][0]
-    track_name = search_result['name']
-    track_artists = ', '.join([artist['name'] for artist in search_result['artists']])
-    track_cover_url = search_result['album']['images'][0]['url']
+    track_name, track_artists, track_cover_url = get_spotify_infos(playing_track)
     plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
-    
     caption = const.MOOD_MESSAGE.format(
         user_firstname=message.from_user.first_name,
-        user_link=f't.me/{message.from_user.username}',
+        user_url=f't.me/{message.from_user.username}',
         fires_received=user.fires,
         track_name=track_name,
         artist_name=track_artists,
@@ -279,7 +276,7 @@ async def mood(client, message):
 
 @app.on_callback_query(filters.create(lambda _, __, query: 'fire' in query.data))
 async def send_fire(client, query):
-    _, user_receiver_id, track_name, artists = re.split('/@/', query.data)
+    _, user_receiver_id, track_name, artists = re.split(r'/@/', query.data)
     user_sender = await get_user_instance(query.from_user.id)
     user_receiver = await get_user_instance(user_receiver_id)
 
@@ -301,6 +298,109 @@ async def send_fire(client, query):
         query.id, 
         const.FIRE_ADDED if is_added else const.FIRE_REMOVED
     )
+
+
+@app.on_message(filters.command(['collage', 'clg'], prefixes=['/', '.', '!']))
+async def clg(client, message):
+    user = await get_user_instance(message.from_user.id)
+    lastfm_user = network.get_user(user.name)
+    await restore_state(user)
+
+    if not user.session_key:
+        return await client.send_message(
+            chat_id=message.chat.id,
+            text=const.NOT_LOGGED_MESSAGE
+        )
+
+    args = re.split(r' ', message.text)
+    if len(args) > 4:
+        return await client.send_message(
+            chat_id=message.chat.id,
+            text=const.COLLAGE_ERROR,
+            disable_web_page_preview=False
+        )
+
+    if len(args) > 1:
+        if not re.match(r'^(:?([1-7]+)x\2)$', args[1]):
+            return await client.send_message(
+                chat_id=message.chat.id,
+                text=const.COLLAGE_ERROR,
+                disable_web_page_preview=False
+            )
+        size = tuple(int(match) for match in re.split(r'x', args[1]))
+    else:
+        size = const.DEFAULT_COLLAGE_COLUMNS, const.DEFAULT_COLLAGE_ROWS
+
+    if len(args) > 2:
+        period = get_period(args[2])
+        if not period:
+            return await client.send_message(
+                chat_id=message.chat.id,
+                text=const.COLLAGE_ERROR,
+                disable_web_page_preview=False
+            )
+    else:
+        period = pylast.PERIOD_OVERALL
+
+    if len(args) > 3:
+        type = get_top_type(args[3])
+        if not type:
+            return await client.send_message(
+                chat_id=message.chat.id,
+                text=const.COLLAGE_ERROR,
+                disable_web_page_preview=False
+            )
+    else:
+        type = const.TRACKS
+
+    message = await client.send_message(
+        chat_id=message.chat.id,
+        text=const.LOADING_COLLAGE_MESSAGE
+    )
+
+    covers_list = collage.get_top_items_covers_url(lastfm_user, network, size, period, type)
+    clg = collage.create_collage(covers_list, size)
+
+    await client.send_photo(
+        chat_id=message.chat.id,
+        photo=clg,
+    )
+    await message.delete()
+
+
+def get_period(query):
+    if query == '7d' or query == '7days' or query == '1w' or query == '1week':
+        return pylast.PERIOD_7DAYS
+    if query == '1m' or query == '1month':
+        return pylast.PERIOD_1MONTH
+    if query == '3m' or query == '3months':
+        return pylast.PERIOD_3MONTHS
+    if query == '6m' or query == '6months':
+        return pylast.PERIOD_6MONTHS
+    if query == '12m' or query == '12months' or query == '1y' or query == '1year':
+        return pylast.PERIOD_12MONTHS
+    if query == 'alltime' or query == 'all-time' or query == 'overall' or query == 'oat':
+        return pylast.PERIOD_OVERALL
+    return None
+
+
+def get_top_type(query):
+    if query == 't' or query == 'tr' or query == 'track' or query == 'tracks':
+        return const.TRACKS
+    if query == 'ar' or query == 'artist' or query == 'artists':
+        return const.ARTISTS
+    if query == 'al' or query == 'album' or query == 'albums':
+        return const.ALBUMS
+    return None
+
+
+def get_spotify_infos(track):
+    query = ' '.join([track.artist.name, track.title, track.info['album']])
+    search_result = spotify.search(query, limit=1, type='track')['tracks']['items'].pop()
+    track_name = search_result['name']
+    track_artists = ', '.join([artist['name'] for artist in search_result['artists']])
+    track_cover_url = search_result['album']['images'][0]['url']
+    return (track_name, track_artists, track_cover_url)
 
 
 def get_playcount(scrobbles_before_lastfm, playing_track):
