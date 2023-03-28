@@ -243,11 +243,12 @@ async def mood(client, message):
         )
 
     # TODO: and if the track is not on Spotify?
-    plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
-    search_result = spotify.search(playing_track, limit=1, type='track')['tracks']['items'][0]
+    query = ' '.join([playing_track.artist.name, playing_track.title, playing_track.info['album']])
+    search_result = spotify.search(query, limit=1, type='track')['tracks']['items'][0]
     track_name = search_result['name']
     track_artists = ', '.join([artist['name'] for artist in search_result['artists']])
     track_cover_url = search_result['album']['images'][0]['url']
+    plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
     
     caption = const.MOOD_MESSAGE.format(
         user_firstname=message.from_user.first_name,
