@@ -46,7 +46,7 @@ def get_top_items_covers_url(lastfm_user, size, period, type):
     for i in items:
         query = get_query(i, type)
         if query in cache:
-            covers_list.append(requests.get(cache[query], stream=True).raw)
+            covers_list.append(requests.get(cache[query]['image_url'], stream=True).raw)
             continue
 
         item_infos = get_search_result(query, type)
@@ -60,9 +60,13 @@ def get_top_items_covers_url(lastfm_user, size, period, type):
         if type == TRACK:
             track_name = get_track_name(item_infos)
             track_artists = get_artists(item_infos['artists'])
-            update_cache(query, [track_name, track_artists, image_url])
+            update_cache(query, {
+                'track_name': track_name,
+                'track_artists': track_artists,
+                'image_url': image_url
+            })
         else:
-            update_cache(query, image_url)
+            update_cache(query, {'image_url': image_url})
         dump_cache()
 
     return covers_list

@@ -16,14 +16,19 @@ spotify = spotipy.Spotify(
 def get_spotify_track_infos(track):
     query = ' '.join([track.title, track.artist.name])
     if query in cache:
-        return cache[query]
+        return list(cache[query].values())
     track_infos = get_search_result(query, const.TRACK)
     track_name = get_track_name(track_infos)
     track_artists = get_artists(track_infos['artists'])
     track_cover_url = get_cover_url(track_infos, const.TRACK)
-    update_cache(query, [track_name, track_artists, track_cover_url])
+    track_value = {
+        'track_name': track_name,
+        'track_artists': track_artists,
+        'image_url': track_cover_url
+    }
+    update_cache(query, track_value)
     dump_cache()
-    return [track_name, track_artists, track_cover_url]
+    return track_value
 
 
 def get_track_name(track_infos):
