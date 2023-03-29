@@ -1,6 +1,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
+from cache import cache, update_cache, dump_cache
 import const
 
 
@@ -14,11 +15,15 @@ spotify = spotipy.Spotify(
 
 def get_spotify_track_infos(track):
     query = ' '.join([track.title, track.artist.name])
+    if query in cache:
+        return cache[query]
     track_infos = get_search_result(query, const.TRACK)
     track_name = get_track_name(track_infos)
     track_artists = get_artists(track_infos['artists'])
     track_cover_url = get_cover_url(track_infos, const.TRACK)
-    return (track_name, track_artists, track_cover_url)
+    update_cache(query, [track_name, track_artists, track_cover_url])
+    dump_cache()
+    return [track_name, track_artists, track_cover_url]
 
 
 def get_track_name(track_infos):

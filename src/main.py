@@ -4,13 +4,13 @@ import zipfile
 import re
 
 from pyrogram import Client, filters
-from pyrogram.types import InputMediaPhoto
 import pylast
 
 from user import User
 import markup
 import collage
 from spotify import get_spotify_track_infos
+from cache import users_list, update_user, dump_users
 import const
 
 
@@ -24,8 +24,6 @@ network = pylast.LastFMNetwork(
     api_key=const.FM_API_KEY,
     api_secret=const.FM_API_SECRET
 )
-with open(const.USERS_PATH) as f:
-    users_list = json.load(f)
 
 
 @app.on_message(filters.command('start'))
@@ -351,7 +349,7 @@ async def clg(client, message):
         text=const.LOADING_COLLAGE_MESSAGE
     )
 
-    covers_list = collage.get_top_items_covers_url(lastfm_user, network, size, period, type)
+    covers_list = collage.get_top_items_covers_url(lastfm_user, size, period, type)
     clg = collage.create_collage(covers_list, size)
 
     await client.send_photo(
@@ -442,28 +440,6 @@ async def get_user_instance(user_id):
         update_user(user)  # Create it, in this case
         dump_users()
     return user
-
-
-def update_user(user):
-    # id is stored as string because json.dump() would generate
-    # duplicate if we use int, since it would eventually converted in a string
-    users_list[str(user.id)] = {
-        'id': user.id,
-        'name': user.name,
-        'session_key': user.session_key,
-        'session_key_generator': user.session_key_generator,
-        'auth_url': user.auth_url,
-        'is_history_loaded': user.is_history_loaded,
-        'is_loading_files': user.is_loading_files, 
-        'fires_received': user.fires_received,
-        'fires_sended': user.fires_sended,
-        'scrobbles_before_lastfm': user.scrobbles_before_lastfm
-    }
-
-
-def dump_users():
-    with open(const.USERS_PATH, 'w+') as f:
-        json.dump(users_list, f, indent=4)
 
 
 if __name__ == '__main__':

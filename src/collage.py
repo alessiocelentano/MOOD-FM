@@ -2,6 +2,7 @@ import requests
 from PIL import Image
 import io
 
+from cache import cache, update_cache, dump_cache
 from spotify import get_search_result, get_cover_url
 from const import TRACK, ARTIST, ALBUM
 from const import NO_COVER
@@ -28,17 +29,22 @@ def create_collage(covers_list, size):
     return image_bytes
 
 
-def get_top_items_covers_url(lastfm_user, network, size, period, type):
+def get_top_items_covers_url(lastfm_user, size, period, type):
     items = get_top_items(lastfm_user, size, period, type)
     covers_list = []
     for i in items:
         query = get_query(i, type)
-        item_infos = get_search_result(query, type)
-        image_url = get_cover_url(item_infos, type)
-        if image_url:
-            covers_list.append(requests.get(image_url, stream=True).raw)
+        if query in cache:
+            covers_list.append(requests.get(cache[query], stream=True).raw)
         else:
-            covers_list.append(NO_COVER)
+            item_infos = get_search_result(query, type)
+            image_url = get_cover_url(item_infos, type)
+            if image_url:
+                covers_list.append(requests.get(image_url, stream=True).raw)
+                update_cache(query, image_url)
+                dump_cache()
+            else:
+                covers_list.append(NO_COVER)
     return covers_list
 
 
@@ -62,4 +68,3 @@ def get_query(item, type):
 
 def get_descriptive_collage(lastfm_user):
     collage = Image.new(MODE, BG_SIZE, BG_COLOR)
-
