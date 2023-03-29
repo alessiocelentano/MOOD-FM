@@ -25,9 +25,9 @@ DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 DEFAULT_COLLAGE_COLUMNS = 3
 DEFAULT_COLLAGE_ROWS = 3
 
-TRACKS = 'tr'
-ARTISTS = 'ar'
-ALBUMS = 'al'
+TRACK = 'track'
+ARTIST = 'artist'
+ALBUM = 'album'
 
 HEADPHONES = '\U0001F3A7'
 TOOL = '\U0001F6E0'
@@ -101,7 +101,7 @@ HISTORY_LOADED_MESSAGE = f'{PARTY_POPPER} History loaded successfully'
 
 MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_url}">{user_firstname}</a> is listening to:</i>\n
 <b>{track_name} • {headphones_emoji} {plays}</b>
-╰┈➤ <i> by {artist_name}</i>
+╰┈➤ <i>by {artist_name}</i>
 '''
 
 LOADING_COLLAGE_MESSAGE = f'''{HOURGLASS} <i>Collage creation in progess...

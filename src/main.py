@@ -6,12 +6,11 @@ import re
 from pyrogram import Client, filters
 from pyrogram.types import InputMediaPhoto
 import pylast
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
 
 from user import User
 import markup
 import collage
+from spotify import get_spotify_track_infos
 import const
 
 
@@ -24,12 +23,6 @@ app = Client(const.SESSION_NAME,
 network = pylast.LastFMNetwork(
     api_key=const.FM_API_KEY,
     api_secret=const.FM_API_SECRET
-)
-spotify = spotipy.Spotify(
-    auth_manager=SpotifyClientCredentials(
-        client_id=const.SPOTIFY_CLIENT_ID,
-        client_secret=const.SPOTIFY_CLIENT_SECRET
-    )
 )
 with open(const.USERS_PATH) as f:
     users_list = json.load(f)
@@ -245,7 +238,7 @@ async def mood(client, message):
         )
 
     # TODO: and if the track is not on Spotify?
-    track_name, track_artists, track_cover_url = get_spotify_infos(playing_track)
+    track_name, track_artists, track_cover_url = get_spotify_track_infos(playing_track)
     plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
     caption = const.MOOD_MESSAGE.format(
         user_firstname=message.from_user.first_name,
@@ -351,7 +344,7 @@ async def clg(client, message):
                 disable_web_page_preview=False
             )
     else:
-        type = const.TRACKS
+        type = const.TRACK
 
     message = await client.send_message(
         chat_id=message.chat.id,
@@ -386,21 +379,12 @@ def get_period(query):
 
 def get_top_type(query):
     if query == 't' or query == 'tr' or query == 'track' or query == 'tracks':
-        return const.TRACKS
+        return const.TRACK
     if query == 'ar' or query == 'artist' or query == 'artists':
-        return const.ARTISTS
+        return const.ARTIST
     if query == 'al' or query == 'album' or query == 'albums':
-        return const.ALBUMS
+        return const.ALBUM
     return None
-
-
-def get_spotify_infos(track):
-    query = ' '.join([track.artist.name, track.title, track.info['album']])
-    search_result = spotify.search(query, limit=1, type='track')['tracks']['items'].pop()
-    track_name = search_result['name']
-    track_artists = ', '.join([artist['name'] for artist in search_result['artists']])
-    track_cover_url = search_result['album']['images'][0]['url']
-    return (track_name, track_artists, track_cover_url)
 
 
 def get_playcount(scrobbles_before_lastfm, playing_track):
