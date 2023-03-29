@@ -236,6 +236,7 @@ async def mood(client, message):
         )
 
     # TODO: and if the track is not on Spotify?
+    # FIX: track value in cache
     track_name, track_artists, track_cover_url = get_spotify_track_infos(playing_track)
     plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
     caption = const.MOOD_MESSAGE.format(

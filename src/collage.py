@@ -3,7 +3,7 @@ from PIL import Image
 import io
 
 from cache import cache, update_cache, dump_cache
-from spotify import get_search_result, get_cover_url
+from spotify import get_search_result, get_track_name, get_artists, get_cover_url
 from const import TRACK, ARTIST, ALBUM
 from const import NO_COVER
 
@@ -13,13 +13,13 @@ COLLAGE_SIZE = (1920, 1920)
 X_OFFSET = 50
 Y_OFFSET = 100
 BG_SIZE = (1920, 1080)
-BG_COLOR = '#5D4037'
+BG_COLOR = '#000000'
 
 
 def create_collage(covers_list, size):
     collage = Image.new(MODE, COLLAGE_SIZE, BG_COLOR)
     for index, item in enumerate(covers_list):
-        cover_size = (COLLAGE_SIZE[0] // size[0], COLLAGE_SIZE[1] // size[1])
+        cover_size = (COLLAGE_SIZE[0] // size[0] + 1, COLLAGE_SIZE[1] // size[1] + 1)
         x = cover_size[0] * (index % size[0])
         y = cover_size[1] * (index // size[1])
         cover = centre_image(Image.open(item)).resize(cover_size)
@@ -42,19 +42,29 @@ def centre_image(image):
 def get_top_items_covers_url(lastfm_user, size, period, type):
     items = get_top_items(lastfm_user, size, period, type)
     covers_list = []
+
     for i in items:
         query = get_query(i, type)
         if query in cache:
             covers_list.append(requests.get(cache[query], stream=True).raw)
+            continue
+
+        item_infos = get_search_result(query, type)
+        image_url = get_cover_url(item_infos, type)
+
+        if not image_url:
+            covers_list.append(NO_COVER)
+            continue
+
+        covers_list.append(requests.get(image_url, stream=True).raw)
+        if type == TRACK:
+            track_name = get_track_name(item_infos)
+            track_artists = get_artists(item_infos['artists'])
+            update_cache(query, [track_name, track_artists, image_url])
         else:
-            item_infos = get_search_result(query, type)
-            image_url = get_cover_url(item_infos, type)
-            if image_url:
-                covers_list.append(requests.get(image_url, stream=True).raw)
-                update_cache(query, image_url)
-                dump_cache()
-            else:
-                covers_list.append(NO_COVER)
+            update_cache(query, image_url)
+        dump_cache()
+
     return covers_list
 
 
