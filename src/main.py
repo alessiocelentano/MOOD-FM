@@ -388,7 +388,11 @@ def get_top_type(query):
 
 
 def get_playcount(scrobbles_before_lastfm, playing_track):
-    lastfm_playcount = playing_track.get_userplaycount()
+    try:
+        lastfm_playcount = playing_track.get_userplaycount()
+    except pylast.WSError:
+        # It seems that get_userplaycount() can't be called when a track is too recent
+        lastfm_playcount = 0
     artist = playing_track.artist.name
     track_name = playing_track.title
 
