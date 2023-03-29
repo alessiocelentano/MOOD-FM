@@ -8,7 +8,7 @@ from const import TRACK, ARTIST, ALBUM
 from const import NO_COVER
 
 MODE = 'RGB'
-COLLAGE_SIZE = (900, 900)
+COLLAGE_SIZE = (1920, 1920)
 
 X_OFFSET = 50
 Y_OFFSET = 100
@@ -22,11 +22,21 @@ def create_collage(covers_list, size):
         cover_size = (COLLAGE_SIZE[0] // size[0], COLLAGE_SIZE[1] // size[1])
         x = cover_size[0] * (index % size[0])
         y = cover_size[1] * (index // size[1])
-        cover = Image.open(item).resize(cover_size)
+        cover = centre_image(Image.open(item)).resize(cover_size)
         collage.paste(cover, (x, y))
     image_bytes = io.BytesIO()
     collage.save(image_bytes, format='png')
     return image_bytes
+
+
+def centre_image(image):
+    width, height = image.size
+    new_dim = min(width, height)
+    left = (width - new_dim) / 2
+    top = (height - new_dim) / 2
+    right = (width + new_dim) / 2
+    bottom = (height + new_dim) / 2
+    return image.crop((left, top, right, bottom))
 
 
 def get_top_items_covers_url(lastfm_user, size, period, type):
