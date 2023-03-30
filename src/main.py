@@ -331,7 +331,7 @@ async def clg(client, message):
 
 
 def get_size(text):
-    size_match = re.search(r'^(:?([1-7]+)x\2)$', text)
+    size_match = re.search(r'([1-7]+)x\1', text)
     if size_match:
         return tuple(re.split(r'x', size_match.group(0)))
     else:
@@ -360,6 +360,7 @@ def get_top_type(text):
     if re.search(r'al(bum(s)?)?', text):
         return const.ALBUM
     return const.TRACK
+
 
 
 def get_playcount(scrobbles_before_lastfm, playing_track):
