@@ -39,8 +39,8 @@ def centre_image(image):
     return image.crop((left, top, right, bottom))
 
 
-def get_top_items_covers_url(lastfm_user, size, period, type):
-    items = get_top_items(lastfm_user, size, period, type)
+def get_top_items_covers_url(lastfm_user, size, time_range, type):
+    items = get_top_items(lastfm_user, size, time_range, type)
     covers_list = []
 
     for i in items:
@@ -49,7 +49,8 @@ def get_top_items_covers_url(lastfm_user, size, period, type):
             covers_list.append(requests.get(cache[query]['image_url'], stream=True).raw)
             continue
 
-        item_infos = find_spotify_item(query, i.item.name, type)
+        item_name = i.item.name if type == ARTIST else i.item.title
+        item_infos = find_spotify_item(query, item_name, type)
         image_url = get_cover_url(item_infos, type)
 
         if not image_url:

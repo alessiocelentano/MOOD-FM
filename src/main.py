@@ -304,53 +304,23 @@ async def clg(client, message):
             text=const.NOT_LOGGED_MESSAGE
         )
 
-    args = re.split(r' ', message.text)
-    if len(args) > 4:
+    if len(re.split(r' ', message.text)) > 4:
         return await client.send_message(
             chat_id=message.chat.id,
             text=const.COLLAGE_ERROR,
             disable_web_page_preview=False
         )
 
-    if len(args) > 1:
-        if not re.match(r'^(:?([1-7]+)x\2)$', args[1]):
-            return await client.send_message(
-                chat_id=message.chat.id,
-                text=const.COLLAGE_ERROR,
-                disable_web_page_preview=False
-            )
-        size = tuple(int(match) for match in re.split(r'x', args[1]))
-    else:
-        size = const.DEFAULT_COLLAGE_COLUMNS, const.DEFAULT_COLLAGE_ROWS
-
-    if len(args) > 2:
-        period = get_period(args[2])
-        if not period:
-            return await client.send_message(
-                chat_id=message.chat.id,
-                text=const.COLLAGE_ERROR,
-                disable_web_page_preview=False
-            )
-    else:
-        period = pylast.PERIOD_OVERALL
-
-    if len(args) > 3:
-        type = get_top_type(args[3])
-        if not type:
-            return await client.send_message(
-                chat_id=message.chat.id,
-                text=const.COLLAGE_ERROR,
-                disable_web_page_preview=False
-            )
-    else:
-        type = const.TRACK
+    size = get_size(message.text)
+    time_range = get_time_range(message.text)
+    type = get_top_type(message.text)
 
     message = await client.send_message(
         chat_id=message.chat.id,
         text=const.LOADING_COLLAGE_MESSAGE
     )
 
-    covers_list = collage.get_top_items_covers_url(lastfm_user, size, period, type)
+    covers_list = collage.get_top_items_covers_url(lastfm_user, size, time_range, type)
     clg = collage.create_collage(covers_list, size)
 
     await client.send_photo(
@@ -360,30 +330,36 @@ async def clg(client, message):
     await message.delete()
 
 
-def get_period(query):
-    if query == '7d' or query == '7days' or query == '1w' or query == '1week':
+def get_size(text):
+    size_match = re.search(r'^(:?([1-7]+)x\2)$', text)
+    if size_match:
+        return tuple(re.split(r'x', size_match.group(0)))
+    else:
+        return const.DEFAULT_COLLAGE_COLUMNS, const.DEFAULT_COLLAGE_ROWS
+
+
+def get_time_range(text):
+    if re.search(r'(7d(ays)?)|(1w(eek)?)', text):
         return pylast.PERIOD_7DAYS
-    if query == '1m' or query == '1month':
-        return pylast.PERIOD_1MONTH
-    if query == '3m' or query == '3months':
-        return pylast.PERIOD_3MONTHS
-    if query == '6m' or query == '6months':
-        return pylast.PERIOD_6MONTHS
-    if query == '12m' or query == '12months' or query == '1y' or query == '1year':
-        return pylast.PERIOD_12MONTHS
-    if query == 'alltime' or query == 'all-time' or query == 'overall' or query == 'oat':
-        return pylast.PERIOD_OVERALL
-    return None
-
-
-def get_top_type(query):
-    if query == 't' or query == 'tr' or query == 'track' or query == 'tracks':
-        return const.TRACK
-    if query == 'ar' or query == 'artist' or query == 'artists':
+    if re.search(r'1m(onths)?', text):
         return const.ARTIST
-    if query == 'al' or query == 'album' or query == 'albums':
+    if re.search(r'3m(onths)?', text):
         return const.ALBUM
-    return None
+    if re.search(r'6m(onths)?', text):
+        return const.ALBUM
+    if re.search(r'6m(onths)?', text):
+        return const.ALBUM
+    if re.search(r'(12m(onths)?)|(1y(ear)?)', text):
+        return const.ALBUM
+    return pylast.PERIOD_OVERALL
+
+
+def get_top_type(text):
+    if re.search(r'ar(tist(s)?)?', text):
+        return const.ARTIST
+    if re.search(r'al(bum(s)?)?', text):
+        return const.ALBUM
+    return const.TRACK
 
 
 def get_playcount(scrobbles_before_lastfm, playing_track):
