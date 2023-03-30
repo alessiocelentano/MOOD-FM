@@ -220,15 +220,13 @@ async def mood(client, message):
     await restore_state(user)
 
     if not user.session_key:
-        return await client.send_message(
-            chat_id=message.chat.id,
+        return await message.reply_text(
             text=const.NOT_LOGGED_MESSAGE
         )
     
     playing_track = lastfm_user.get_now_playing()
     if not playing_track:
-        return await client.send_message(
-            chat_id=message.chat.id,
+        return await message.reply_text(
             text=const.MOOD_ERROR.format(
                 cross_emoji=const.CROSS,
                 user_firstname=message.from_user.first_name
@@ -236,7 +234,6 @@ async def mood(client, message):
         )
 
     # TODO: and if the track is not on Spotify?
-    # FIX: track value in cache
     track_name, track_artists, track_cover_url = get_spotify_track_infos(playing_track)
     plays = get_playcount(user.scrobbles_before_lastfm, playing_track)
     caption = const.MOOD_MESSAGE.format(
@@ -253,8 +250,7 @@ async def mood(client, message):
     # Here we pick only the first CALLBACK_DATA_MAX characters of track_name
     # and track_artists to avoid callback_data from being too large
     # (that would prevent the message sending) 
-    await client.send_photo(
-        chat_id=message.chat.id,
+    await message.reply_photo(
         photo=track_cover_url,
         caption=caption,
         reply_markup=markup.get_mood_markup(
@@ -299,14 +295,12 @@ async def clg(client, message):
     await restore_state(user)
 
     if not user.session_key:
-        return await client.send_message(
-            chat_id=message.chat.id,
+        return await message.reply_text(
             text=const.NOT_LOGGED_MESSAGE
         )
 
     if len(re.split(r' ', message.text)) > 4:
-        return await client.send_message(
-            chat_id=message.chat.id,
+        return await message.reply_text(
             text=const.COLLAGE_ERROR,
             disable_web_page_preview=False
         )
@@ -323,8 +317,7 @@ async def clg(client, message):
     covers_list = collage.get_top_items_covers_url(lastfm_user, size, time_range, type)
     clg = collage.create_collage(covers_list, size)
 
-    await client.send_photo(
-        chat_id=message.chat.id,
+    await message.reply_photo(
         photo=clg,
         caption=f'{message.from_user.first_name} {size[0]}x{size[1]} {time_range} {type} collage'
     )

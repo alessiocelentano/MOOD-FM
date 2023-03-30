@@ -47,5 +47,5 @@ def get_cover_url(item_infos, type):
     return item_infos['images'][0]['url']
 
 
-def get_search_result(query, type, list_index=0):
-    return spotify.search(query, limit=list_index, type=type)[f'{type}s']['items'].pop()
+def get_search_result(query, type, limit=1):
+    return spotify.search(query, limit=limit, type=type)[f'{type}s']['items'].pop()
