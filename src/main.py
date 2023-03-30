@@ -325,7 +325,7 @@ async def clg(client, message):
 
     await client.send_photo(
         chat_id=message.chat.id,
-        photo=clg,
+        photo=clg
     )
     await message.delete()
 
@@ -333,7 +333,7 @@ async def clg(client, message):
 def get_size(text):
     size_match = re.search(r'([1-7]+)x\1', text)
     if size_match:
-        return tuple(re.split(r'x', size_match.group(0)))
+        return tuple(int(group) for group in re.split(r'x', size_match.group(0)))
     else:
         return const.DEFAULT_COLLAGE_COLUMNS, const.DEFAULT_COLLAGE_ROWS
 
