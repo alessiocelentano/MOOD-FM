@@ -86,8 +86,8 @@ def find_spotify_item(query, item_name, type):
     counter = 0
     first_result = None
     while True:
-        item_infos = get_search_result(query, type, list_index=counter)
         counter += 1
+        item_infos = get_search_result(query, type, list_index=counter)
         if not first_result:
             first_result = item_infos
         if item_infos['name'] == item_name:

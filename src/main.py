@@ -315,7 +315,7 @@ async def clg(client, message):
     time_range = get_time_range(message.text)
     type = get_top_type(message.text)
 
-    message = await client.send_message(
+    collage_message = await client.send_message(
         chat_id=message.chat.id,
         text=const.LOADING_COLLAGE_MESSAGE
     )
@@ -325,9 +325,10 @@ async def clg(client, message):
 
     await client.send_photo(
         chat_id=message.chat.id,
-        photo=clg
+        photo=clg,
+        caption=f'{message.from_user.first_name} {size[0]}x{size[1]} {time_range} {type} collage'
     )
-    await message.delete()
+    await collage_message.delete()
 
 
 def get_size(text):

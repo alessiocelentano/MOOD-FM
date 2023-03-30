@@ -48,4 +48,4 @@ def get_cover_url(item_infos, type):
 
 
 def get_search_result(query, type, list_index=0):
-    return spotify.search(query, limit=list_index+1, type=type)[f'{type}s']['items'][list_index]
+    return spotify.search(query, limit=list_index, type=type)[f'{type}s']['items'].pop()
