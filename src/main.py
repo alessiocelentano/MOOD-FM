@@ -268,6 +268,12 @@ async def send_fire(client, query):
     user_sender = await get_user_instance(query.from_user.id)
     user_receiver = await get_user_instance(user_receiver_id)
 
+    if user_sender.id == user_receiver.id:
+        return await client.answer_callback_query(
+            query.id,
+            const.AUTOFIRE
+        )
+
     is_added = user_sender.toggle_fire_sending(user_receiver.id, artists, track_name)
     user_receiver.toggle_fire_addition(user_sender.id, artists, track_name)
     update_user(user_sender)
