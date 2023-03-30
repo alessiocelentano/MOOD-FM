@@ -41,10 +41,11 @@ def get_artists(artists_info):
 
 def get_cover_url(item_infos, type):
     if type == const.TRACK:
-        return item_infos['album']['images'][0]['url']
-    if type == const.ARTIST or type == const.ALBUM:
-        return item_infos['images'][0]['url']
+        item_infos = item_infos['album']
+    if not item_infos['images']:
+        return None
+    return item_infos['images'][0]['url']
 
 
-def get_search_result(query, type):
-    return spotify.search(query, limit=1, type=type)[f'{type}s']['items'][0]
+def get_search_result(query, type, list_index=0):
+    return spotify.search(query, limit=list_index+1, type=type)[f'{type}s']['items'][list_index]

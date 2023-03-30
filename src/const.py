@@ -5,6 +5,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 CONFIG_FILE_PATH = f'{PROJECT_ROOT}/src/config.ini'
 USERS_PATH = f'{PROJECT_ROOT}/src/users.json'
 CACHE_PATH = f'{PROJECT_ROOT}/src/cache.json'
+NO_COVER = f'{PROJECT_ROOT}/assets/no_cover.jpg'
 config = configparser.ConfigParser()
 config.read(CONFIG_FILE_PATH)
 
@@ -52,7 +53,6 @@ FIRE = '\U0001F525'
 CHANNEL_LINK = 't.me/MOODFM_CHANNEL'
 SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
 TUTORIAL_LINK = 'https://telegra.ph/MOOD-FM-TUTORIAL-03-26'
-NO_COVER = f'{PROJECT_ROOT}/assets/no_cover.jpg'
 
 START_MESSAGE = f'''<a href="{TUTORIAL_LINK}">{HEADPHONES}</a> <b><u>What is MOOD-FM?</u></b>
 MOOD-FM is a detailed LastFM interface on Telegram with several additional features. \
@@ -104,7 +104,7 @@ MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_url
 ╰┈➤ <i>by {artist_name}</i>
 '''
 
-LOADING_COLLAGE_MESSAGE = f'''{HOURGLASS} <i>Collage creation in progess...
+LOADING_COLLAGE_MESSAGE = f'''{HOURGLASS} <i>Collage creation in progress...
 It may take a while</i>
 '''
 

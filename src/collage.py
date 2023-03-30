@@ -49,7 +49,7 @@ def get_top_items_covers_url(lastfm_user, size, period, type):
             covers_list.append(requests.get(cache[query]['image_url'], stream=True).raw)
             continue
 
-        item_infos = get_search_result(query, type)
+        item_infos = find_spotify_item(query, i.item.name, type)
         image_url = get_cover_url(item_infos, type)
 
         if not image_url:
@@ -81,11 +81,25 @@ def get_top_items(lastfm_user, size, period, type):
         return lastfm_user.get_top_albums(period=period, limit=size[0]*size[1])
 
 
+def find_spotify_item(query, item_name, type):
+    counter = 0
+    first_result = None
+    while True:
+        item_infos = get_search_result(query, type, list_index=counter)
+        counter += 1
+        if not first_result:
+            first_result = item_infos
+        if item_infos['name'] == item_name:
+            return item_infos
+        if counter > 5:
+            return first_result
+
+
 def get_query(item, type):
     if type == TRACK:
         return ' '.join([item.item.title, item.item.artist.name])
     if type == ARTIST:
-        return item.item.name
+        return ' '.join([item.item.name])
     if type == ALBUM:
         return ' '.join([item.item.title, item.item.artist.name])
 
