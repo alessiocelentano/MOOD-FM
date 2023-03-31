@@ -28,7 +28,7 @@ def get_spotify_track_infos(track):
     }
     update_cache(query, track_value)
     dump_cache()
-    return track_value
+    return tuple(track_value.values())
 
 
 def get_track_name(track_infos):
