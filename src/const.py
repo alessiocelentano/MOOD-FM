@@ -50,6 +50,10 @@ MAGNIFYING_GLASS = '\U0001F50E'
 PARTY_POPPER = '\U0001F389'
 FIRE = '\U0001F525'
 WARNING = '\u26A0'
+NOTE = '\U0001F3B5'
+DISK = '\U0001F4BF'
+PERSON = '\U0001F464'
+TIME = '\U0001F551'
 
 CHANNEL_LINK = 't.me/MOODFM_CHANNEL'
 SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
@@ -103,6 +107,11 @@ HISTORY_LOADED_MESSAGE = f'{PARTY_POPPER} History loaded successfully'
 MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_url}">{user_firstname}</a> is listening to:</i>\n
 <b>{track_name} • {headphones_emoji} {plays}</b>
 ╰┈➤ <i>by {artist_name}</i>
+'''
+
+COLLAGE_MESSAGE = '''<b><u><a href="{user_link}">{first_name}</a>\'s {size[0]}x{size[1]} collage</u>
+╰┈➤ {type_emoji} {type}s
+╰┈➤ {time_emoji} {time}</b>
 '''
 
 LOADING_COLLAGE_MESSAGE = f'''{HOURGLASS} <i>Collage creation in progress...

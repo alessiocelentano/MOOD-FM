@@ -330,7 +330,15 @@ async def clg(client, message):
 
     covers_list = await collage.get_top_items_covers_url(lastfm_user, size, time_range, type)
     clg = await collage.create_collage(covers_list, size)
-    caption = f'{message.from_user.first_name} {size[0]}x{size[1]} {time_range} {type} collage' 
+    caption = const.COLLAGE_MESSAGE.format(
+        user_link=f't.me/{message.from_user.username}',
+        first_name=message.from_user.first_name,
+        size=size,
+        type_emoji=get_type_emoji(type), 
+        type=type.capitalize(),
+        time_emoji=const.TIME,
+        time=prettify_time_range(time_range)
+    )
 
     await message.reply_photo(
         photo=clg,
@@ -371,6 +379,29 @@ def get_top_type(text):
         return const.TRACK
     return None
 
+
+def get_type_emoji(type):
+    if type == const.TRACK:
+        return const.NOTE 
+    if type == const.ALBUM:
+        return const.DISK
+    if type == const.ARTIST:
+        return const.PERSON
+
+
+def prettify_time_range(time_range):
+    if time_range == pylast.PERIOD_7DAYS:
+        return 'Last 7 days'
+    if time_range == pylast.PERIOD_1MONTH:
+        return 'Last month'
+    if time_range == pylast.PERIOD_3MONTHS:
+        return 'Last 3 months'
+    if time_range == pylast.PERIOD_6MONTHS:
+        return 'Last 6 months'
+    if time_range == pylast.PERIOD_12MONTHS:
+        return 'Last year'
+    if time_range == pylast.PERIOD_OVERALL:
+        return 'Overall'
 
 
 def get_playcount(scrobbles_before_lastfm, playing_track):
