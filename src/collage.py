@@ -16,7 +16,7 @@ BG_SIZE = (1920, 1080)
 BG_COLOR = '#000000'
 
 
-def create_collage(covers_list, size):
+async def create_collage(covers_list, size):
     collage = Image.new(MODE, COLLAGE_SIZE, BG_COLOR)
     for index, item in enumerate(covers_list):
         cover_size = (COLLAGE_SIZE[0] // size[0] + 1, COLLAGE_SIZE[1] // size[1] + 1)
@@ -39,7 +39,7 @@ def centre_image(image):
     return image.crop((left, top, right, bottom))
 
 
-def get_top_items_covers_url(lastfm_user, size, time_range, type):
+async def get_top_items_covers_url(lastfm_user, size, time_range, type):
     items = get_top_items(lastfm_user, size, time_range, type)
     covers_list = []
 
@@ -73,13 +73,13 @@ def get_top_items_covers_url(lastfm_user, size, time_range, type):
     return covers_list
 
 
-def get_top_items(lastfm_user, size, period, type):
+def get_top_items(lastfm_user, size, time_range, type):
     if type == TRACK:
-        return lastfm_user.get_top_tracks(period=period, limit=size[0]*size[1])
+        return lastfm_user.get_top_tracks(period=time_range, limit=size[0]*size[1])
     if type == ARTIST:
-        return lastfm_user.get_top_artists(period=period, limit=size[0]*size[1])
+        return lastfm_user.get_top_artists(period=time_range, limit=size[0]*size[1])
     if type == ALBUM:
-        return lastfm_user.get_top_albums(period=period, limit=size[0]*size[1])
+        return lastfm_user.get_top_albums(period=time_range, limit=size[0]*size[1])
 
 
 def find_spotify_item(query, item_name, type):

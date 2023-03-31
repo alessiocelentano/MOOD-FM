@@ -320,8 +320,8 @@ async def clg(client, message):
         text=const.LOADING_COLLAGE_MESSAGE
     )
 
-    covers_list = collage.get_top_items_covers_url(lastfm_user, size, time_range, type)
-    clg = collage.create_collage(covers_list, size)
+    covers_list = await collage.get_top_items_covers_url(lastfm_user, size, time_range, type)
+    clg = await collage.create_collage(covers_list, size)
 
     await message.reply_photo(
         photo=clg,
@@ -331,7 +331,7 @@ async def clg(client, message):
 
 
 def get_size(text):
-    size_match = re.search(r'([1-7]+)x\1', text)
+    size_match = re.search(r'([1-9]|10)x\1', text)
     if size_match:
         return tuple(int(group) for group in re.split(r'x', size_match.group(0)))
     else:
