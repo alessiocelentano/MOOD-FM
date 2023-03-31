@@ -340,34 +340,34 @@ async def clg(client, message):
 
 
 def get_size(text):
-    size_match = re.search(r'([1-9]|10)x\1', text)
+    size_match = re.search(r'\s([1-9]|10)x\1(?=\s|$)', text)
     if size_match:
         return tuple(int(group) for group in re.split(r'x', size_match.group(0)))
     return None
 
 
 def get_time_range(text):
-    if re.search(r'(7d(ays)?)|(1w(eek)?)', text):
+    if re.search(r'\s(7d(ays)?)|(1w(eek)?)(?=\s|$)', text):
         return pylast.PERIOD_7DAYS
-    if re.search(r'1m(onths)?', text):
+    if re.search(r'\s1m(onths)?(?=\s|$)', text):
         return pylast.PERIOD_1MONTH
-    if re.search(r'3m(onths)?', text):
+    if re.search(r'\s3m(onths)?(?=\s|$)', text):
         return pylast.PERIOD_3MONTHS
-    if re.search(r'6m(onths)?', text):
+    if re.search(r'\s6m(onths)?(?=\s|$)', text):
         return pylast.PERIOD_6MONTHS
-    if re.search(r'(12m(onths)?)|(1y(ear)?)', text):
+    if re.search(r'\s(12m(onths)?)|(1y(ear)?)(?=\s|$)', text):
         return pylast.PERIOD_12MONTHS
-    if re.search(r'(overall)|(all(time)?)', text):
+    if re.search(r'\s(overall)|(all(time)?)(?=\s|$)', text):
         return pylast.PERIOD_OVERALL
     return None
 
 
 def get_top_type(text):
-    if re.search(r'ar(tist(s)?)?', text):
+    if re.search(r'\sar(tist(s)?)?(?=\s|$)', text):
         return const.ARTIST
-    if re.search(r'al(bum(s)?)?', text):
+    if re.search(r'\sal(bum(s)?)?(?=\s|$)', text):
         return const.ALBUM
-    if re.search(r'tr(ack(s)?)?', text):
+    if re.search(r'\str(ack(s)?)?(?=\s|$)', text):
         return const.TRACK
     return None
 
