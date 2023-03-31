@@ -49,6 +49,7 @@ HOURGLASS = '\u23F3'
 MAGNIFYING_GLASS = '\U0001F50E'
 PARTY_POPPER = '\U0001F389'
 FIRE = '\U0001F525'
+WARNING = '\u26A0'
 
 CHANNEL_LINK = 't.me/MOODFM_CHANNEL'
 SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
@@ -113,6 +114,8 @@ MOOD_ERROR = '{cross_emoji} <i>{user_firstname}</i>, you are not currently liste
 COLLAGE_ERROR = f'''<a href="{TUTORIAL_LINK}">{CROSS}</a> Error: invalid use of the command.
 Please check out the tutorial to see the parameters available for /collage
 '''
+
+COLLAGE_ARGS_WARNING = f'<i>\n{WARNING} One or more parameters are invalid. Please check the !collage usage on the <a href="{TUTORIAL_LINK}">tutorial</a></i>'
 
 AUTH_SUCCESS = f'{TIC} MOOD-FM authorizated successfully!'
 UNAUTH_SUCCESS = f'{TIC} MOOD-FM unauthorizated successfully!'

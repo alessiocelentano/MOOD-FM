@@ -305,7 +305,8 @@ async def clg(client, message):
             text=const.NOT_LOGGED_MESSAGE
         )
 
-    if len(re.split(r' ', message.text)) > 4:
+    args = re.split(r' ', message.text)
+    if len(args) > 4:
         return await message.reply_text(
             text=const.COLLAGE_ERROR,
             disable_web_page_preview=False
@@ -315,6 +316,13 @@ async def clg(client, message):
     time_range = get_time_range(message.text)
     type = get_top_type(message.text)
 
+    valid_args = len([i for i in [size, time_range, type] if i])
+    args_warning = const.COLLAGE_ARGS_WARNING if valid_args < len(args) - 1 else ''
+
+    size = size or (const.DEFAULT_COLLAGE_COLUMNS, const.DEFAULT_COLLAGE_ROWS)
+    time_range = time_range or pylast.PERIOD_OVERALL
+    type = type or const.TRACK
+    
     collage_message = await client.send_message(
         chat_id=message.chat.id,
         text=const.LOADING_COLLAGE_MESSAGE
@@ -322,10 +330,11 @@ async def clg(client, message):
 
     covers_list = await collage.get_top_items_covers_url(lastfm_user, size, time_range, type)
     clg = await collage.create_collage(covers_list, size)
+    caption = f'{message.from_user.first_name} {size[0]}x{size[1]} {time_range} {type} collage' 
 
     await message.reply_photo(
         photo=clg,
-        caption=f'{message.from_user.first_name} {size[0]}x{size[1]} {time_range} {type} collage'
+        caption=caption + args_warning
     )
     await collage_message.delete()
 
@@ -334,24 +343,23 @@ def get_size(text):
     size_match = re.search(r'([1-9]|10)x\1', text)
     if size_match:
         return tuple(int(group) for group in re.split(r'x', size_match.group(0)))
-    else:
-        return const.DEFAULT_COLLAGE_COLUMNS, const.DEFAULT_COLLAGE_ROWS
+    return None
 
 
 def get_time_range(text):
     if re.search(r'(7d(ays)?)|(1w(eek)?)', text):
         return pylast.PERIOD_7DAYS
     if re.search(r'1m(onths)?', text):
-        return const.ARTIST
+        return pylast.PERIOD_1MONTH
     if re.search(r'3m(onths)?', text):
-        return const.ALBUM
+        return pylast.PERIOD_3MONTHS
     if re.search(r'6m(onths)?', text):
-        return const.ALBUM
-    if re.search(r'6m(onths)?', text):
-        return const.ALBUM
+        return pylast.PERIOD_6MONTHS
     if re.search(r'(12m(onths)?)|(1y(ear)?)', text):
-        return const.ALBUM
-    return pylast.PERIOD_OVERALL
+        return pylast.PERIOD_12MONTHS
+    if re.search(r'(overall)|(all(time)?)', text):
+        return pylast.PERIOD_OVERALL
+    return None
 
 
 def get_top_type(text):
@@ -359,7 +367,9 @@ def get_top_type(text):
         return const.ARTIST
     if re.search(r'al(bum(s)?)?', text):
         return const.ALBUM
-    return const.TRACK
+    if re.search(r'tr(ack(s)?)?', text):
+        return const.TRACK
+    return None
 
 
 
