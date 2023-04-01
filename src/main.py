@@ -306,7 +306,7 @@ async def clg(client, message):
         )
 
     args = re.split(r' ', message.text)
-    if len(args) > 4:
+    if len(args) > 5:
         return await message.reply_text(
             text=const.COLLAGE_ERROR,
             disable_web_page_preview=False
@@ -315,8 +315,9 @@ async def clg(client, message):
     size = get_size(message.text)
     time_range = get_time_range(message.text)
     type = get_top_type(message.text)
+    clean = 'clean' in message.text
 
-    valid_args = len([i for i in [size, time_range, type] if i])
+    valid_args = len([i for i in [size, time_range, type, clean] if i])
     args_warning = const.COLLAGE_ARGS_WARNING if valid_args < len(args) - 1 else ''
 
     size = size or (const.DEFAULT_COLLAGE_COLUMNS, const.DEFAULT_COLLAGE_ROWS)
@@ -329,7 +330,7 @@ async def clg(client, message):
     )
 
     top_items_infos = await collage.get_top_items_infos(lastfm_user, size, time_range, type)
-    clg = await collage.create_collage(top_items_infos, size, clean=False)
+    clg = await collage.create_collage(top_items_infos, size, clean=clean)
     caption = const.COLLAGE_MESSAGE.format(
         user_link=f't.me/{message.from_user.username}',
         first_name=message.from_user.first_name,
