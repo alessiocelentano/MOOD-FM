@@ -37,7 +37,7 @@ class User():
             artist = scr['master_metadata_album_artist_name']
             track_name = scr['master_metadata_track_name']
             album = scr['master_metadata_album_album_name']
-            index = self._find_track(artist, track_name)
+            index = self._find_tracks_index(artist, track_name).pop()
 
             if index:
                 self.scrobbles_before_lastfm[index]['scrobbles'] += 1
@@ -46,16 +46,28 @@ class User():
                 self._add_track(artist, track_name, album, scrobble_unixtime)
 
 
+    def find_tracks(self, artist, track_name=None, album_name=None):
+        matches = []
+        for i in self._find_tracks_index:
+            matches.append(self.scrobbles_before_lastfm[i])
+        return matches
+
+
+    def _find_tracks_index(self, artist, track_name=None, album_name=None):
+        matches = []
+        for i, item in enumerate(self.scrobbles_before_lastfm):
+            if item['track_name'] and item['track_name'] == track_name and item['artist'] == artist:
+                return [i]  # Track
+            elif item['album'] and item['album'] == album_name and item['artist'] == artist:
+                matches.append(i)  # Album tracks
+            elif item['artist'] == artist:
+                matches.append(i)  # Artist tracks
+        return matches
+
+
     def _timestamp_to_unixtime(self, timestamp):
         timestamp_obj = time.strptime(timestamp, const.DATETIME_FORMAT)
         return int(time.mktime(timestamp_obj))
-
-
-    def _find_track(self, artist, track_name):
-        for i, item in enumerate(self.scrobbles_before_lastfm):
-            if item['artist'] == artist and item['track_name'] == track_name:
-                return i
-        return None
 
 
     def _update_firstlisten_unixtime(self, scrobble_unixtime, index):

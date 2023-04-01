@@ -17,7 +17,7 @@ BG_SIZE = (1920, 1080)
 BG_COLOR = '#000000'
 
 
-async def create_collage(top_items_infos, size, clean=True):
+async def create_collage(user, top_items_infos, size, time_range, type, clean=True):
     collage = Image.new(MODE, COLLAGE_SIZE, BG_COLOR)
     for index, item in enumerate(top_items_infos):
         cover_obj = item['cover']
@@ -26,7 +26,7 @@ async def create_collage(top_items_infos, size, clean=True):
         y = cover_size[1] * (index // size[1])
         cover = centre_image(Image.open(cover_obj).convert(MODE)).resize(cover_size)
         if not clean:
-            cover = add_item_name(cover, top_items_infos[index])
+            cover = add_item_name(user, cover, top_items_infos[index], time_range, type)
         collage.paste(cover, (x, y))
     image_bytes = io.BytesIO()
     collage.save(image_bytes, format='png')
@@ -43,14 +43,21 @@ def centre_image(image):
     return image.crop((left, top, right, bottom))
 
 
-def add_item_name(cover, item_infos):
+def add_item_name(user, cover, item_infos, time_range, type):
+    track_name = item_infos['track']
+    album_name = item_infos['album']
+    artist = item_infos['artist']
+    plays = int(item_infos['scrobbles'])
+
     band = draw_band(cover)
-    
+    # additional_plays = get_additional_plays(user, time_range, artist, track_name, album_name)
+    additional_plays = 0
     border_offset = band.size[1] / 10
-    top_text = item_infos["name"]
-    bottom_text = f'{item_infos["scrobbles"]} plays'
-    if item_infos['artist']:
-        bottom_text = f'by {item_infos["artist"]}, {bottom_text}'
+
+    top_text = track_name or album_name or artist
+    bottom_text = str(plays + additional_plays) + ' plays'
+    if type == TRACK or type == ALBUM:
+        bottom_text = f'by {artist}, {bottom_text}'
     
     font = adjust_font_size(band, cover, max(top_text, bottom_text, key=len), border_offset)
 
@@ -59,6 +66,15 @@ def add_item_name(cover, item_infos):
     draw.text((border_offset, cover.size[1] - band.size[1]/2 - font.size/5), bottom_text, (255,255,255), font=font)
     
     return cover
+
+
+def get_additional_plays(user, time_range, artist, track_name, album_name):
+    # Fix: not scrobble time in User. Impossible to add them consistently
+    #      alternative: use only for overall
+    additional_plays = 0
+    for index in user.find_tracks_index(artist, track_name, album_name):
+        additional_plays += user.scrobbles_before_lastfm[index]['scrobbles']
+    return additional_plays
 
 
 def draw_band(cover):
@@ -77,15 +93,15 @@ def adjust_font_size(band, cover, text, offset):
     return font
 
 
-
 async def get_top_items_infos(lastfm_user, size, time_range, type):
     top_items = get_top_items(lastfm_user, size, time_range, type)
     covers_list = get_top_items_covers_url(top_items, type)
     top_items_infos = []
     for item, cover in zip(top_items, covers_list):
         top_items_infos.append({
-            'name': item.item.title if type != ARTIST else item.item.name,
-            'artist': item.item.artist.name if type != ARTIST else None,
+            'track': item.item.title if type == TRACK else None,
+            'album': item.item.title if type == ALBUM else None,
+            'artist': item.item.name if type == ARTIST else item.item.artist.name,
             'scrobbles': item.weight,
             'cover': cover
         })
