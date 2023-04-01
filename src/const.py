@@ -5,6 +5,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 CONFIG_FILE_PATH = f'{PROJECT_ROOT}/src/config.ini'
 USERS_PATH = f'{PROJECT_ROOT}/src/users.json'
 CACHE_PATH = f'{PROJECT_ROOT}/src/cache.json'
+FONT = f'{PROJECT_ROOT}/fonts/Roboto-Bold.ttf'
 NO_COVER = f'{PROJECT_ROOT}/assets/no_cover.jpg'
 config = configparser.ConfigParser()
 config.read(CONFIG_FILE_PATH)

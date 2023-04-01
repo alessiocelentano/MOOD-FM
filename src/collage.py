@@ -1,14 +1,15 @@
 import requests
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import io
 
 from cache import cache, update_cache, dump_cache
 from spotify import get_search_result, get_track_name, get_artists, get_cover_url
 from const import TRACK, ARTIST, ALBUM
 from const import NO_COVER
+from const import FONT
 
-MODE = 'RGB'
-COLLAGE_SIZE = (1920, 1920)
+MODE = 'RGBA'
+COLLAGE_SIZE = (2500, 2500)
 
 X_OFFSET = 50
 Y_OFFSET = 100
@@ -16,13 +17,16 @@ BG_SIZE = (1920, 1080)
 BG_COLOR = '#000000'
 
 
-async def create_collage(covers_list, size):
+async def create_collage(top_items_infos, size, clean=True):
     collage = Image.new(MODE, COLLAGE_SIZE, BG_COLOR)
-    for index, item in enumerate(covers_list):
+    for index, item in enumerate(top_items_infos):
+        cover_obj = item['cover']
         cover_size = (COLLAGE_SIZE[0] // size[0] + 1, COLLAGE_SIZE[1] // size[1] + 1)
         x = cover_size[0] * (index % size[0])
         y = cover_size[1] * (index // size[1])
-        cover = centre_image(Image.open(item)).resize(cover_size)
+        cover = centre_image(Image.open(cover_obj).convert(MODE)).resize(cover_size)
+        if not clean:
+            cover = add_item_name(cover, top_items_infos[index])
         collage.paste(cover, (x, y))
     image_bytes = io.BytesIO()
     collage.save(image_bytes, format='png')
@@ -39,11 +43,68 @@ def centre_image(image):
     return image.crop((left, top, right, bottom))
 
 
-async def get_top_items_covers_url(lastfm_user, size, time_range, type):
-    items = get_top_items(lastfm_user, size, time_range, type)
+def add_item_name(cover, item_infos):
+    band = draw_band(cover)
+    
+    border_offset = band.size[1] / 10
+    top_text = item_infos["name"]
+    bottom_text = f'{item_infos["scrobbles"]} plays'
+    if item_infos['artist']:
+        bottom_text = f'by {item_infos["artist"]}, {bottom_text}'
+    
+    font = adjust_font_size(band, cover, max(top_text, bottom_text, key=len), border_offset)
+
+    draw = ImageDraw.Draw(cover)
+    draw.text((border_offset, cover.size[1] - band.size[1]/2 - 6*font.size/5), top_text, (255,255,255), font=font)
+    draw.text((border_offset, cover.size[1] - band.size[1]/2 - font.size/5), bottom_text, (255,255,255), font=font)
+    
+    return cover
+
+
+def draw_band(cover):
+    band = Image.new(MODE, (cover.size[0], int(cover.size[1] / 6)))
+    band.paste((0, 0, 0, 220), (0, 0, band.size[0], band.size[1]))
+    cover.paste(band, (0, cover.size[1] - band.size[1]), band)
+    return band
+
+
+def adjust_font_size(band, cover, text, offset):
+    font = None
+    size = int(band.size[1] / 3)
+    while not font or font.getlength(text) > cover.size[0] - offset:
+        font = ImageFont.truetype(FONT, size)
+        size -= 1
+    return font
+
+
+
+async def get_top_items_infos(lastfm_user, size, time_range, type):
+    top_items = get_top_items(lastfm_user, size, time_range, type)
+    covers_list = get_top_items_covers_url(top_items, type)
+    top_items_infos = []
+    for item, cover in zip(top_items, covers_list):
+        top_items_infos.append({
+            'name': item.item.title if type != ARTIST else item.item.name,
+            'artist': item.item.artist.name if type != ARTIST else None,
+            'scrobbles': item.weight,
+            'cover': cover
+        })
+    return top_items_infos
+    
+
+def get_top_items(lastfm_user, size, time_range, type):
+    if type == TRACK:
+        return lastfm_user.get_top_tracks(period=time_range, limit=size[0]*size[1])
+    if type == ARTIST:
+        return lastfm_user.get_top_artists(period=time_range, limit=size[0]*size[1])
+    if type == ALBUM:
+        return lastfm_user.get_top_albums(period=time_range, limit=size[0]*size[1])
+
+
+def get_top_items_covers_url(top_items, type):
     covers_list = []
 
-    for i in items:
+    for i in top_items:
         query = get_query(i, type)
         if query in cache:
             covers_list.append(requests.get(cache[query]['image_url'], stream=True).raw)
@@ -71,15 +132,6 @@ async def get_top_items_covers_url(lastfm_user, size, time_range, type):
         dump_cache()
 
     return covers_list
-
-
-def get_top_items(lastfm_user, size, time_range, type):
-    if type == TRACK:
-        return lastfm_user.get_top_tracks(period=time_range, limit=size[0]*size[1])
-    if type == ARTIST:
-        return lastfm_user.get_top_artists(period=time_range, limit=size[0]*size[1])
-    if type == ALBUM:
-        return lastfm_user.get_top_albums(period=time_range, limit=size[0]*size[1])
 
 
 def find_spotify_item(query, item_name, type):

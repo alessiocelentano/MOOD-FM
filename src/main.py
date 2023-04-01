@@ -328,8 +328,8 @@ async def clg(client, message):
         text=const.LOADING_COLLAGE_MESSAGE
     )
 
-    covers_list = await collage.get_top_items_covers_url(lastfm_user, size, time_range, type)
-    clg = await collage.create_collage(covers_list, size)
+    top_items_infos = await collage.get_top_items_infos(lastfm_user, size, time_range, type)
+    clg = await collage.create_collage(top_items_infos, size, clean=False)
     caption = const.COLLAGE_MESSAGE.format(
         user_link=f't.me/{message.from_user.username}',
         first_name=message.from_user.first_name,
