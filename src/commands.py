@@ -1,8 +1,9 @@
 import re
 
 from pylast import PERIOD_OVERALL
+from pyrogram.enums import ParseMode
 
-from cache import update_user, dump_users
+from cache import users_list, update_user, dump_users
 import collage
 import const
 import markup
@@ -90,7 +91,6 @@ def get_plays_in_a_row(lastfm_user, playing_track):
     return i + 1
 
 
-
 async def collage_command(client, message):
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
@@ -144,3 +144,16 @@ async def collage_command(client, message):
         caption=caption + args_warning
     )
     await collage_message.delete()
+
+
+async def broadcast(client, message):
+    if message.from_user.id != const.BROADCASTER_ID:
+        return
+
+    text = re.sub(r'/broadcast', '', message.text)
+    for u in users_list:
+        await client.send_message(
+            chat_id=int(u),
+            text=text,
+            parse_mode=ParseMode.MARKDOWN
+        )

@@ -75,5 +75,10 @@ async def collage_command_caller(client, message):
     await commands.collage_command(client, message)
 
 
+@app.on_message(filters.command('broadcast', prefixes=['/', '.', '!']))
+async def broadcast_caller(client, message):
+    await commands.broadcast(client, message)
+
+
 if __name__ == '__main__':
     app.run()
