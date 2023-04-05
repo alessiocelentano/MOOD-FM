@@ -22,7 +22,7 @@ def update_user(user):
         'is_loading_files': user.is_loading_files, 
         'fires_received': user.fires_received,
         'fires_sended': user.fires_sended,
-        'scrobbles_before_lastfm': user.scrobbles_before_lastfm
+        'plays_before_lastfm': user.plays_before_lastfm
     }
 
 def update_cache(key, value):

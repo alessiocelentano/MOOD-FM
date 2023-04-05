@@ -49,8 +49,8 @@ def get_load_history_markup():
     ])
 
 
-def get_mood_markup(user_id, fires, track_name, track_artists):
+def get_mood_markup(user_id, fires, track, artists):
     return InlineKeyboardMarkup([[
         InlineKeyboardButton(text=f'{const.FIRE}{fires}',
-        callback_data=f'fire/@/{user_id}/@/{track_name}/@/{track_artists}')
+        callback_data=f'fire/@/{user_id}/@/{track}/@/{artists}')
     ]])

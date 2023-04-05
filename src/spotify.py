@@ -18,20 +18,20 @@ def get_spotify_track_infos(track):
     if query in cache:
         return list(cache[query].values())
     track_infos = get_search_result(query, const.TRACK)
-    track_name = get_track_name(track_infos)
-    track_artists = get_artists(track_infos['artists'])
-    track_cover_url = get_cover_url(track_infos, const.TRACK)
+    track = get_track(track_infos)
+    artists = get_artists(track_infos['artists'])
+    cover_url = get_cover_url(track_infos, const.TRACK)
     track_value = {
-        'track_name': track_name,
-        'track_artists': track_artists,
-        'image_url': track_cover_url
+        'track': track,
+        'artists': artists,
+        'image_url': cover_url
     }
     update_cache(query, track_value)
     dump_cache()
     return tuple(track_value.values())
 
 
-def get_track_name(track_infos):
+def get_track(track_infos):
     return track_infos['name']
 
 

@@ -21,11 +21,16 @@ SPOTIFY_CLIENT_SECRET = config['spotify']['client_secret']
 SESSION_NAME = config['misc']['session_name']
 
 CACHE_TIME = 3
-SCROBBLE_MINIMUM_MS = 30000
+PLAY_MINIMUM_MS = 30000
 CALLBACK_DATA_MAX = 20
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 DEFAULT_COLLAGE_COLUMNS = 3
 DEFAULT_COLLAGE_ROWS = 3
+SEVEN_DAYS_IN_SECONDS = 604800
+ONE_MONTH_IN_SECONDS = 2592000
+THREE_MONTHS_IN_SECONDS = 7776000
+SIX_MONTHS_IN_SECONDS = 15552000
+TWELVE_MONTHS_IN_SECONDS = 31536000
 
 TRACK = 'track'
 ARTIST = 'artist'
@@ -69,7 +74,7 @@ Use the command /mood in any chat with MOOD-FM.\n
 '''
 
 LOGIN_MESSAGE = f'''{PEOPLE} <b><u>Connect with us</u></b>
-Authorize MOOD-FM to access your scrobbles.
+Authorize MOOD-FM to access your plays.
 Once logged in, click on "Done" button
 '''
 
@@ -83,7 +88,7 @@ SETTINGS_MESSAGE = '''{} <b><u>Settings</u></b>\n
 '''
 
 LOAD_HISTORY_MESSAGE = f'''{OUTBOX} <b><u>Load history</u></b>
-LastFM starts to keep track of your scrobbles when you join it.
+LastFM starts to keep track of your plays when you join it.
 On MOOD-FM you can load your Spotify history to update your data.
 Send your <code>my_spotify_data.zip</code> here
 
@@ -106,8 +111,8 @@ STATUS_HISTORY_LOAD_MESSAGE = OUTBOX + ''' <b>Loading history. It may take a few
 HISTORY_LOADED_MESSAGE = f'{PARTY_POPPER} History loaded successfully'
 
 MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_url}">{user_firstname}</a> is listening to:</i>\n
-<b>{track_name} • {headphones_emoji} {plays}</b>
-╰┈➤ <i>by {artist_name}</i>
+<b>{track} • {headphones_emoji} {plays}</b>
+╰┈➤ <i>by {artists}</i>
 '''
 
 COLLAGE_MESSAGE = '''<b><u><a href="{user_link}">{first_name}</a>\'s {size[0]}x{size[1]} collage</u>
