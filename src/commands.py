@@ -50,6 +50,7 @@ async def mood(message):
     # TODO: and if the track is not on Spotify?
     track, artists, cover_url = get_spotify_track_infos(playing_track)
     plays = user.get_playcount(playing_track)
+    loved_song_emoji = const.GLOWING_STAR + ' ' if plays > 100 else ''
     caption = const.MOOD_MESSAGE.format(
         user_firstname=message.from_user.first_name,
         user_url=f't.me/{message.from_user.username}',
@@ -57,6 +58,7 @@ async def mood(message):
         track=track,
         artists=artists,
         plays=plays,
+        loved_song_emoji=loved_song_emoji,
         fire_emoji=const.FIRE,
         headphones_emoji=const.HEADPHONES
     )

@@ -60,6 +60,7 @@ NOTE = '\U0001F3B5'
 DISK = '\U0001F4BF'
 PERSON = '\U0001F464'
 TIME = '\U0001F551'
+GLOWING_STAR = '\U0001F31F'
 
 CHANNEL_LINK = 't.me/MOODFM_CHANNEL'
 SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
@@ -111,7 +112,7 @@ STATUS_HISTORY_LOAD_MESSAGE = OUTBOX + ''' <b>Loading history. It may take a few
 HISTORY_LOADED_MESSAGE = f'{PARTY_POPPER} History loaded successfully'
 
 MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_url}">{user_firstname}</a> is listening to:</i>\n
-<b>{track} • {headphones_emoji} {plays}</b>
+<b>{loved_song_emoji}{track} • {headphones_emoji} {plays}</b>
 ╰┈➤ <i>by {artists}</i>
 '''
 
