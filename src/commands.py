@@ -146,6 +146,14 @@ async def collage_command(client, message):
     await collage_message.delete()
 
 
+async def tutorial(client, message):
+    await client.send_message(
+        chat_id=message.chat.id,
+        text=const.TUTORIAL_MESSAGE,
+        disable_web_page_preview=False
+    )
+
+
 async def broadcast(client, message):
     if message.from_user.id != const.BROADCASTER_ID:
         return
@@ -154,6 +162,5 @@ async def broadcast(client, message):
     for u in users_list:
         await client.send_message(
             chat_id=int(u),
-            text=text,
-            parse_mode=ParseMode.MARKDOWN
+            text=text
         )

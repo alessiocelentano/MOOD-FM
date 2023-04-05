@@ -63,6 +63,7 @@ PERSON = '\U0001F464'
 TIME = '\U0001F551'
 GLOWING_STAR = '\U0001F31F'
 REPEAT_ONE = '\U0001F502'
+BOOK = '\U0001F4D5'
 
 CHANNEL_LINK = 't.me/MOODFM_CHANNEL'
 SOURCE_LINK = 'github.com/alessiocelentano/MOOD-FM'
@@ -136,6 +137,8 @@ Please check out the tutorial to see the parameters available for /collage
 '''
 
 COLLAGE_ARGS_WARNING = f'<i>\n{WARNING} One or more parameters are invalid. Please check the !collage usage on the <a href="{TUTORIAL_LINK}">tutorial</a></i>'
+
+TUTORIAL_MESSAGE = f'{BOOK} <a href="{TUTORIAL_LINK}"><b>MOOD-FM TUTORIAL</b></a>, a Telegraph by Alessio Celentano'
 
 AUTH_SUCCESS = f'{TIC} MOOD-FM authorizated successfully!'
 UNAUTH_SUCCESS = f'{TIC} MOOD-FM unauthorizated successfully!'
