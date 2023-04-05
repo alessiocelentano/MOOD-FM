@@ -63,6 +63,10 @@ async def mood(message):
         headphones_emoji=const.HEADPHONES
     )
 
+    plays_in_a_row = get_plays_in_a_row(lastfm_user, playing_track)
+    if plays_in_a_row > 1:
+        caption += '\n' + const.PLAYS_IN_A_ROW.format(const.REPEAT_ONE, plays_in_a_row)
+
     # Here we pick only the first CALLBACK_DATA_MAX characters of track
     # and artists to avoid callback_data from being too large
     # (that would prevent the message sending) 
@@ -76,6 +80,15 @@ async def mood(message):
             artists[:const.CALLBACK_DATA_MAX]
         )
     )
+
+
+def get_plays_in_a_row(lastfm_user, playing_track):
+    recent_tracks = lastfm_user.get_recent_tracks(limit=99)
+    for i in range(99):
+        if recent_tracks[i].track.title != playing_track.title:
+            return i + 1
+    return i + 1
+
 
 
 async def collage_command(client, message):
