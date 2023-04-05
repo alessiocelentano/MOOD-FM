@@ -52,7 +52,7 @@ class User():
 
     def find_tracks(self, type, artist=None, track=None, album=None):
         matches = []
-        for i in self._find_item_indexes(type, self.plays_before_lastfm, artist=artist, track=track, album=album):
+        for i in self._find_item_indexes(type, artist=artist, track=track, album=album):
             matches.append(self.plays_before_lastfm[i])
         return matches
 
@@ -102,9 +102,9 @@ class User():
         return False
 
 
-    def _find_item_indexes(self, items, type, artist=None, track=None, album=None):
+    def _find_item_indexes(self, type, artist=None, track=None, album=None):
         indexes = []
-        for i, item in enumerate(items):
+        for i, item in enumerate(self.plays_before_lastfm):
             if type == const.TRACK:
                 if track == item['track'] and artist == item['artist']:
                     return [i]
