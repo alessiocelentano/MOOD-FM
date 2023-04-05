@@ -1,4 +1,4 @@
-import time
+from time import time
 
 from pylast import PERIOD_7DAYS, PERIOD_1MONTH, PERIOD_3MONTHS, \
                 PERIOD_6MONTHS, PERIOD_12MONTHS, PERIOD_OVERALL
