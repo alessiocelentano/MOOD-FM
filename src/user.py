@@ -1,4 +1,4 @@
-from time import time
+import time
 
 from pylast import PERIOD_7DAYS, PERIOD_1MONTH, PERIOD_3MONTHS, \
                 PERIOD_6MONTHS, PERIOD_12MONTHS, PERIOD_OVERALL
@@ -87,15 +87,15 @@ class User():
 
                 
     def _is_within_time_range(self, unixtime, time_range):
-        if time_range == PERIOD_7DAYS and time() - unixtime < SEVEN_DAYS_IN_SECONDS:
+        if time_range == PERIOD_7DAYS and time.time() - unixtime < SEVEN_DAYS_IN_SECONDS:
             return True
-        elif time_range == PERIOD_1MONTH and time() - unixtime < ONE_MONTH_IN_SECONDS:
+        elif time_range == PERIOD_1MONTH and time.time() - unixtime < ONE_MONTH_IN_SECONDS:
             return True
-        elif time_range == PERIOD_3MONTHS and time() - unixtime < THREE_MONTHS_IN_SECONDS:
+        elif time_range == PERIOD_3MONTHS and time.time() - unixtime < THREE_MONTHS_IN_SECONDS:
             return True
-        elif time_range == PERIOD_6MONTHS and time() - unixtime < SIX_MONTHS_IN_SECONDS:
+        elif time_range == PERIOD_6MONTHS and time.time() - unixtime < SIX_MONTHS_IN_SECONDS:
             return True
-        elif time_range == PERIOD_12MONTHS and time() - unixtime < TWELVE_MONTHS_IN_SECONDS:
+        elif time_range == PERIOD_12MONTHS and time.time() - unixtime < TWELVE_MONTHS_IN_SECONDS:
             return True
         elif time_range == PERIOD_OVERALL:
             return True
