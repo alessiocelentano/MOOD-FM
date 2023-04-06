@@ -1,5 +1,8 @@
 __pycache__/
+*.cache
 *.ini
 *.json
+*.pem
 *.session
 *.session-journal
+*.sh
