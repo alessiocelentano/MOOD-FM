@@ -1,20 +1,18 @@
 import re
 
 from pylast import PERIOD_OVERALL
-from pyrogram.enums import ParseMode
 
 from cache import users_list, update_user, dump_users
 import collage
 import const
 import markup
-from misc import get_user_instance, get_size, get_time_range, get_top_type, \
-                get_type_emoji, prettify_time_range
+import misc
 from network import network
 from spotify import get_spotify_track_infos
 
 
 async def start(client, message):
-    user = await get_user_instance(message.from_user.id)
+    user = await misc.get_user_instance(message.from_user.id)
     user.restore_state()
     update_user(user)
     dump_users()
@@ -28,16 +26,14 @@ async def start(client, message):
 
 
 async def mood(message):
-    user = await get_user_instance(message.from_user.id)
+    user = await misc.get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
     user.restore_state()
     update_user(user)
     dump_users()
 
     if not user.session_key:
-        return await message.reply_text(
-            text=const.NOT_LOGGED_MESSAGE
-        )
+        return await message.reply_text(text=const.NOT_LOGGED_MESSAGE)
     
     playing_track = lastfm_user.get_now_playing()
     if not playing_track:
@@ -51,20 +47,17 @@ async def mood(message):
     # TODO: and if the track is not on Spotify?
     track, artists, cover_url = get_spotify_track_infos(playing_track)
     plays = user.get_playcount(playing_track)
-    loved_song_emoji = const.GLOWING_STAR + ' ' if plays > 100 else ''
     caption = const.MOOD_MESSAGE.format(
-        user_firstname=message.from_user.first_name,
-        user_url=f't.me/{message.from_user.username}',
+        message=message,
         fires_received=user.fires,
         track=track,
         artists=artists,
         plays=plays,
-        loved_song_emoji=loved_song_emoji,
-        fire_emoji=const.FIRE,
-        headphones_emoji=const.HEADPHONES
+        loved_song_emoji=misc.get_loved_song_emoji(plays),
+        const=const
     )
 
-    plays_in_a_row = get_plays_in_a_row(lastfm_user, playing_track)
+    plays_in_a_row = misc.get_plays_in_a_row(lastfm_user, playing_track)
     if plays_in_a_row > 1:
         caption += '\n' + const.PLAYS_IN_A_ROW.format(const.REPEAT_ONE, plays_in_a_row)
 
@@ -75,33 +68,23 @@ async def mood(message):
         photo=cover_url,
         caption=caption,
         reply_markup=markup.get_mood_markup(
-            user.id,
-            user.get_track_fires(artists, track),
-            track[:const.CALLBACK_DATA_MAX],
-            artists[:const.CALLBACK_DATA_MAX]
+            user_id=user.id,
+            fires=user.get_track_fires(artists, track),
+            track=track[:const.CALLBACK_DATA_MAX],
+            artists=artists[:const.CALLBACK_DATA_MAX]
         )
     )
 
 
-def get_plays_in_a_row(lastfm_user, playing_track):
-    recent_tracks = lastfm_user.get_recent_tracks(limit=99)
-    for i in range(99):
-        if recent_tracks[i].track.title != playing_track.title:
-            return i + 1
-    return i + 1
-
-
 async def collage_command(client, message):
-    user = await get_user_instance(message.from_user.id)
+    user = await misc.get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
     user.restore_state()
     update_user(user)
     dump_users()
 
     if not user.session_key:
-        return await message.reply_text(
-            text=const.NOT_LOGGED_MESSAGE
-        )
+        return await message.reply_text(text=const.NOT_LOGGED_MESSAGE)
 
     args = re.split(r' ', message.text)
     if len(args) > 5:
@@ -110,9 +93,9 @@ async def collage_command(client, message):
             disable_web_page_preview=False
         )
 
-    size = get_size(message.text)
-    time_range = get_time_range(message.text)
-    type = get_top_type(message.text)
+    size = misc.get_size(message.text)
+    time_range = misc.get_time_range(message.text)
+    type = misc.get_top_type(message.text)
     clean = 'clean' in message.text
 
     valid_args = len([i for i in [size, time_range, type, clean] if i])
@@ -128,26 +111,30 @@ async def collage_command(client, message):
     )
 
     top_items_infos = await collage.get_top_items_infos(user, lastfm_user, size, time_range, type)
-    clg = await collage.create_collage(user, top_items_infos, size, time_range, type, clean=clean)
-    caption = const.COLLAGE_MESSAGE.format(
-        user_link=f't.me/{message.from_user.username}',
-        first_name=message.from_user.first_name,
+    collage_image = await collage.create_collage(
+        items=top_items_infos,
         size=size,
-        type_emoji=get_type_emoji(type), 
+        type=type,
+        clean=clean
+    )
+    caption = const.COLLAGE_MESSAGE.format(
+        message=message,
+        size=size,
+        type_emoji=misc.get_type_emoji(type), 
         type=type.capitalize(),
         time_emoji=const.TIME,
-        time=prettify_time_range(time_range)
+        time=misc.prettify_time_range(time_range)
     )
 
     await message.reply_photo(
-        photo=clg,
-        caption=caption + args_warning
+        photo=collage_image,
+        caption=caption+args_warning
     )
     await collage_message.delete()
 
 
 async def tutorial(client, message):
-    user = await get_user_instance(message.from_user.id)
+    user = await misc.get_user_instance(message.from_user.id)
     user.restore_state()
     update_user(user)
     dump_users()

@@ -1,12 +1,14 @@
 import time
 
 from pylast import PERIOD_7DAYS, PERIOD_1MONTH, PERIOD_3MONTHS, \
-                PERIOD_6MONTHS, PERIOD_12MONTHS, PERIOD_OVERALL
+                PERIOD_6MONTHS, PERIOD_12MONTHS, PERIOD_OVERALL, \
+                WSError
 
 from const import SEVEN_DAYS_IN_SECONDS, ONE_MONTH_IN_SECONDS, \
-                THREE_MONTHS_IN_SECONDS, SIX_MONTHS_IN_SECONDS, TWELVE_MONTHS_IN_SECONDS
-import const
-from pylast import WSError
+                THREE_MONTHS_IN_SECONDS, SIX_MONTHS_IN_SECONDS, \
+                TWELVE_MONTHS_IN_SECONDS, \
+                TRACK, ALBUM, ARTIST, \
+                PLAY_MINIMUM_MS, DATETIME_FORMAT, CALLBACK_DATA_MAX
 
 
 class User():
@@ -32,7 +34,7 @@ class User():
 
     def store_plays(self, plays, registration_unixtime):
         for p in plays:
-            if p['ms_played'] < const.PLAY_MINIMUM_MS:
+            if p['ms_played'] < PLAY_MINIMUM_MS:
                 continue
 
             play_unixtime = self._timestamp_to_unixtime(p['ts'])
@@ -42,7 +44,7 @@ class User():
             artist = p['master_metadata_album_artist_name']
             track = p['master_metadata_track_name']
             album = p['master_metadata_album_album_name']
-            indexes = self._find_item_indexes(const.TRACK, artist=artist, track=track)
+            indexes = self._find_item_indexes(TRACK, artist=artist, track=track)
 
             if not indexes:
                 self._create_track(artist, track, album, play_unixtime)
@@ -70,7 +72,7 @@ class User():
                     items[key] = {
                         'type': type,
                         'name': tr[type],
-                        'artist': tr['artist'] if type != const.ARTIST else None,
+                        'artist': tr['artist'] if type != ARTIST else None,
                         'plays': 1,
                         'updated': False
                     }
@@ -78,11 +80,11 @@ class User():
 
 
     def _create_key_dict_from_item(self, type, artist, name):
-        if type == const.TRACK:
+        if type == TRACK:
             return f'{artist} - {name}'
-        if type == const.ALBUM:
+        if type == ALBUM:
             return f'{artist} - {name}'
-        if type == const.ARTIST:
+        if type == ARTIST:
             return artist
 
                 
@@ -105,20 +107,20 @@ class User():
     def _find_item_indexes(self, type, artist=None, track=None, album=None):
         indexes = []
         for i, item in enumerate(self.plays_before_lastfm):
-            if type == const.TRACK:
+            if type == TRACK:
                 if track == item['track'] and artist == item['artist']:
                     return [i]
-            elif type == const.ALBUM:
+            elif type == ALBUM:
                 if album == item['album'] and artist == item['artist']:
                     indexes.append(i)
-            elif type == const.ARTIST:
+            elif type == ARTIST:
                 if artist == i['artist']:
                     indexes.append(i)
         return indexes
 
 
     def _timestamp_to_unixtime(self, timestamp):
-        timestamp_obj = time.strptime(timestamp, const.DATETIME_FORMAT)
+        timestamp_obj = time.strptime(timestamp, DATETIME_FORMAT)
         return int(time.mktime(timestamp_obj))
 
 
@@ -178,9 +180,9 @@ class User():
     def get_track_fires(self, artist, track):
         counter = 0
         for f in self.fires_received:
-            if f['artist'] != artist[:const.CALLBACK_DATA_MAX]:
+            if f['artist'] != artist[:CALLBACK_DATA_MAX]:
                 continue
-            if f['track'] != track[:const.CALLBACK_DATA_MAX]:
+            if f['track'] != track[:CALLBACK_DATA_MAX]:
                 continue
             counter += 1
         return counter

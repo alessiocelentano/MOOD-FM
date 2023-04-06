@@ -32,6 +32,8 @@ THREE_MONTHS_IN_SECONDS = 7776000
 SIX_MONTHS_IN_SECONDS = 15552000
 TWELVE_MONTHS_IN_SECONDS = 31536000
 BROADCASTER_ID = 312012637
+PLAYS_FOR_LOVED_SONG = 100
+PLAYS_IN_A_ROW_LIMIT = 99
 
 TRACK = 'track'
 ARTIST = 'artist'
@@ -87,8 +89,8 @@ You\'re currently logged in with your Last FM account.
 Press the button below to unauthorize it
 '''
 
-SETTINGS_MESSAGE = '''{} <b><u>Settings</u></b>\n
-<b>Spotify history loaded:</b> {}
+SETTINGS_MESSAGE = '''{wrench_emoji} <b><u>Settings</u></b>\n
+<b>Spotify history loaded:</b> {toggled_emoji}
 '''
 
 LOAD_HISTORY_MESSAGE = f'''{OUTBOX} <b><u>Load history</u></b>
@@ -112,16 +114,18 @@ STATUS_HISTORY_LOAD_MESSAGE = OUTBOX + ''' <b>Loading history. It may take a few
 {1} Download of <code>{0}</code>
 '''
 
+FILES_FOUND_LINE = '\n<i>{running_emoji} {total_files} files found</i>\n'
+
 HISTORY_LOADED_MESSAGE = f'{PARTY_POPPER} History loaded successfully'
 
-MOOD_MESSAGE = '''{fire_emoji} <b>{fires_received}</b> ➠ <i><a href="{user_url}">{user_firstname}</a> is listening to:</i>\n
-<b>{loved_song_emoji}{track} • {headphones_emoji} {plays}</b>
+MOOD_MESSAGE = '''{const.FIRE} <b>{fires_received}</b> ➠ <i><a href="t.me/{message.from_user.username}">{message.from_user.first_name}</a> is listening to:</i>\n
+<b>{loved_song_emoji}{track} • {const.HEADPHONES} {plays}</b>
 ╰┈➤ <i>by {artists}</i>
 '''
 
 PLAYS_IN_A_ROW = '{} <b><u>{} plays in a row!</u></b>'
 
-COLLAGE_MESSAGE = '''<b><u><a href="{user_link}">{first_name}</a>\'s {size[0]}x{size[1]} collage</u>
+COLLAGE_MESSAGE = '''<b><u><a href="t.me/{message.from_user.username}">{message.from_user.first_name}</a>\'s {size[0]}x{size[1]} collage</u>
 ╰┈➤ {type_emoji} {type}s
 ╰┈➤ {time_emoji} {time}</b>
 '''

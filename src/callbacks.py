@@ -7,7 +7,7 @@ from pylast import SessionKeyGenerator, WSError
 from cache import update_user, dump_users
 import const
 import markup
-from misc import get_user_instance, update_history_loading_status
+from misc import get_user_instance, get_status_text, update_status
 from network import network
 
 
@@ -18,7 +18,7 @@ async def lastfm_login(client, query):
     user.auth_url = user.session_key_generator.get_web_auth_url()
     update_user(user)
 
-    await client.answer_callback_query(query.id)  # Delete the loading circle
+    await client.answer_callback_query(callback_query_id=query.id)  # Delete the loading circle
     await query.message.edit_text(
         text=const.LOGIN_MESSAGE,
         reply_markup=markup.get_login_markup(user.auth_url)
@@ -33,15 +33,23 @@ async def check_autorization(client, query):
         user.restore_state()
         update_user(user)
         dump_users()
-        await client.answer_callback_query(query.id, const.AUTH_SUCCESS, show_alert=True)
+        await client.answer_callback_query(
+            callback_query_id=query.id,
+            text=const.AUTH_SUCCESS,
+            show_alert=True
+        )
         
         await query.message.edit_text(
-            const.START_MESSAGE, 
+            text=const.START_MESSAGE,
             reply_markup=markup.get_start_markup(user.session_key)
         )
 
     except WSError:
-        await client.answer_callback_query(query.id, const.AUTH_ERROR, show_alert=True)
+        await client.answer_callback_query(
+            callback_query_id=query.id,
+            text=const.AUTH_ERROR,
+            show_alert=True
+        )
 
 
 async def lastfm_logout(client, query):
@@ -50,7 +58,7 @@ async def lastfm_logout(client, query):
     # in this way a new instance is created and stored
     await get_user_instance(query.from_user.id)
 
-    await client.answer_callback_query(query.id)  # Delete the loading circle
+    await client.answer_callback_query(callback_query_id=query.id)  # Delete the loading circle
     await query.message.edit_text(
         text=const.LOGOUT_MESSAGE,
         reply_markup=markup.get_logout_markup()
@@ -63,9 +71,13 @@ async def remove_authorization(client, query):
     update_user(user)
     dump_users()
 
-    await client.answer_callback_query(query.id, const.UNAUTH_SUCCESS, show_alert=True)
+    await client.answer_callback_query(
+        callback_query_id=query.id,
+        text=const.UNAUTH_SUCCESS,
+        show_alert=True
+    )
     await query.message.edit_text(
-        const.START_MESSAGE, 
+        text=const.START_MESSAGE, 
         reply_markup=markup.get_start_markup(user.session_key)
     )
 
@@ -76,7 +88,7 @@ async def back(client, query):
     update_user(user)
     dump_users()
 
-    await client.answer_callback_query(query.id)  # Delete the loading circle
+    await client.answer_callback_query(callback_query_id=query.id)  # Delete the loading circle
     await query.message.edit_text(
         text=const.START_MESSAGE,
         reply_markup=markup.get_start_markup(user.session_key)
@@ -87,11 +99,11 @@ async def settings(client, query):
     user = await get_user_instance(query.from_user.id)
 
     text = const.SETTINGS_MESSAGE.format(
-        const.WRENCH,
-        const.TIC if user.is_history_loaded else const.CROSS
+        wrench_emoji=const.WRENCH,
+        toggled_emoji=const.TIC if user.is_history_loaded else const.CROSS
     )
 
-    await client.answer_callback_query(query.id)  # Delete the loading circle
+    await client.answer_callback_query(callback_query_id=query.id)  # Delete the loading circle
     await query.message.edit_text(
         text=text,
         reply_markup=markup.get_settings_markup()
@@ -103,15 +115,15 @@ async def load_history(client, query):
 
     if not user.session_key:
         return await client.answer_callback_query(
-            query.id,
-            const.NOT_LOGGED_MESSAGE,
+            callback_query_id=query.id,
+            text=const.NOT_LOGGED_MESSAGE,
             show_alert=True
         )
 
     if user.is_history_loaded:
         return await client.answer_callback_query(
-            query.id,
-            const.ALREADY_LOADED,
+            callback_query_id=query.id,
+            text=const.ALREADY_LOADED,
             show_alert=True
         )
 
@@ -119,7 +131,7 @@ async def load_history(client, query):
     update_user(user)
     dump_users()
 
-    await client.answer_callback_query(query.id)  # Delete the loading circle
+    await client.answer_callback_query(callback_query_id=query.id)  # Delete the loading circle
     await query.message.edit_text(
         text=const.LOAD_HISTORY_MESSAGE,
         reply_markup=markup.get_load_history_markup()
@@ -130,7 +142,6 @@ async def store_history(client, message):
     user = await get_user_instance(message.from_user.id)
     lastfm_user = network.get_user(user.name)
     registration_unixtime = lastfm_user.get_unixtime_registered()
-    step = 1
 
     if not user.is_loading_files:
         return
@@ -138,27 +149,22 @@ async def store_history(client, message):
     if not message.document or message.document.file_name[-4:] != '.zip':
         return await client.send_message(
             chat_id=message.chat.id,
-            text=const.INVALID_HISTORY_MESSAGE,
+            text=const.INVALID_HISTORY_MESSAGE
         )
 
     user.is_loading_files = False
-    
-    status = await update_history_loading_status(
-        message=message,
-        file_names=[message.document.file_name], 
-        step=0,
-        client=client
+    status = await client.send_message(
+        chat_id=message.chat.id,
+        text=get_status_text(message.document.file_name)
     )
     history_zip = await client.download_media(message, in_memory=True)
 
     with ZipFile(history_zip) as zip:
         endsongs = list(filter(lambda x: ('MyData/endsong' in x), zip.namelist()))
+        file_names = [message.document.file_name] + endsongs
+        step = 1
         for item in endsongs:
-            await update_history_loading_status(
-                message=status,
-                file_names=[message.document.file_name] + endsongs,
-                step=step
-            )
+            await update_status(status, file_names, step)
             with zip.open(item) as f:
                 plays = json.loads(f.read().decode('utf-8'))
             user.store_plays(plays, registration_unixtime)
@@ -167,11 +173,8 @@ async def store_history(client, message):
     user.is_history_loaded = True
     update_user(user)
     dump_users()
-    await update_history_loading_status(
-        message=status,
-        file_names=[message.document.file_name] + endsongs,
-        step=step
-    )
+
+    await update_status(status, file_names, step)
     return await client.send_message(
         chat_id=message.chat.id,
         text=const.HISTORY_LOADED_MESSAGE
@@ -185,8 +188,8 @@ async def send_fire(client, query):
 
     if user_sender.id == user_receiver.id:
         return await client.answer_callback_query(
-            query.id,
-            const.AUTOFIRE
+            callback_query_id=query.id,
+            text=const.AUTOFIRE
         )
 
     is_added = user_sender.toggle_fire_sending(user_receiver.id, artists, track)
@@ -204,6 +207,6 @@ async def send_fire(client, query):
         )
     )
     await client.answer_callback_query(
-        query.id, 
-        const.FIRE_ADDED if is_added else const.FIRE_REMOVED
+        callback_query_id=query.id, 
+        text=const.FIRE_ADDED if is_added else const.FIRE_REMOVED
     )
