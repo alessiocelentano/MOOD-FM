@@ -147,6 +147,11 @@ async def collage_command(client, message):
 
 
 async def tutorial(client, message):
+    user = await get_user_instance(message.from_user.id)
+    user.restore_state()
+    update_user(user)
+    dump_users()
+
     await client.send_message(
         chat_id=message.chat.id,
         text=const.TUTORIAL_MESSAGE,

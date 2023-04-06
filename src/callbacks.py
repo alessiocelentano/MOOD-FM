@@ -30,7 +30,7 @@ async def check_autorization(client, query):
 
     try:
         user.session_key, user.name = user.session_key_generator.get_web_auth_session_key_username(user.auth_url)
-        user.session_key_generator, user.auth_url = None, None
+        user.restore_state()
         update_user(user)
         dump_users()
         await client.answer_callback_query(query.id, const.AUTH_SUCCESS, show_alert=True)
